@@ -1,0 +1,60 @@
+:root {
+    --void: #101611;
+    --edge: #080b08;
+    --panel: #292f29;
+    --panel-light: #414a41;
+    --cream: #f4f1df;
+    --muted: #aeb5a7;
+    --lime: #6ee33f;
+    --lime-dark: #347b24;
+    --gold: #f5c542;
+    --mc-font: "Minecraftory", "Minecraft Ten", "Press Start 2P", Impact, monospace;
+}
+
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--cream);
+    background-color: var(--void);
+    background-image:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+        radial-gradient(circle at 50% 0, #2b3b27 0, transparent 46%);
+    background-size: 32px 32px, 32px 32px, auto;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.hub { width: min(920px, calc(100% - 28px)); margin: 0 auto; padding: clamp(28px, 6vh, 64px) 0 70px; }
+header { margin-bottom: 36px; text-align: center; }
+.social-links { display: flex; justify-content: center; gap: 9px; margin-bottom: 16px; }
+.social-button { min-width: 210px; padding: 10px 14px; border: 3px solid #171717; color: #fff; font-family: var(--mc-font); font-size: .78rem; font-weight: 400; line-height: 1.15; text-decoration: none; cursor: pointer; transition: transform .12s, filter .12s; }
+.social-button:hover { filter: brightness(1.1); transform: translateY(-2px); }
+.kofi-button { background: #d94b49; box-shadow: inset 3px 3px #ed7a78, inset -3px -3px #8f292d, 0 5px 0 rgba(0,0,0,.4); }
+.discord-button { background: #4752c4; box-shadow: inset 3px 3px #7580e5, inset -3px -3px #293276, 0 5px 0 rgba(0,0,0,.4); }
+header h1 { margin: 0; color: #fff; font-family: var(--mc-font); font-size: clamp(2.7rem, 8vw, 5.1rem); font-weight: 400; line-height: .9; letter-spacing: .015em; text-shadow: 0 4px #5e655b, 0 8px var(--edge); }
+header span { display: block; margin-top: 22px; color: var(--muted); font-size: 1rem; }
+
+.game-list { display: flex; flex-direction: column; gap: 19px; }
+.game-card { position: relative; display: flex; align-items: center; gap: 28px; min-height: 178px; padding: 28px 30px; border: 4px solid var(--edge); background: linear-gradient(135deg, #303830, #252d26); color: inherit; text-decoration: none; box-shadow: inset 3px 3px 0 var(--panel-light), inset -3px -3px 0 #171d18, 0 7px 0 rgba(0,0,0,.38); transition: transform .13s, filter .13s, border-color .13s; }
+.game-card.available:hover { transform: translateY(-3px); filter: brightness(1.08); border-color: var(--lime); }
+.game-card.available:active { transform: translateY(3px); box-shadow: inset 3px 3px 0 var(--panel-light), inset -3px -3px 0 #171d18, 0 2px 0 rgba(0,0,0,.38); }
+.game-icon { display: grid; place-items: center; width: 94px; height: 94px; flex: 0 0 94px; border: 4px solid var(--edge); background: #76552f; color: #fff; font-family: var(--mc-font); font-size: 2.2rem; text-shadow: 3px 3px #2c1c0e; box-shadow: inset 5px 5px #a77c49, inset -5px -5px #49321b; }
+.game-copy { display: flex; flex: 1; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+.game-copy strong { font-family: var(--mc-font); font-size: 1.8rem; font-weight: 400; text-shadow: 2px 2px var(--edge); }
+.game-copy > span { color: var(--muted); font-size: 1rem; line-height: 1.45; }
+.play { min-width: 92px; color: var(--lime); font-family: var(--mc-font); font-size: .9rem; text-align: right; }
+.play b { font-family: Arial, sans-serif; font-size: 2rem; vertical-align: -3px; }
+
+@media (max-width: 600px) {
+    .hub { padding-top: 24px; }
+    .social-links { flex-direction: column; align-items: center; }
+    .social-button { width: min(100%, 310px); }
+    header { margin-bottom: 25px; }
+    header h1 { font-size: 3rem; }
+    .game-card { align-items: flex-start; gap: 15px; min-height: 0; padding: 17px; }
+    .game-icon { width: 58px; height: 58px; flex-basis: 58px; font-size: 1.6rem; }
+    .game-copy strong { font-size: 1.05rem; }
+    .play { position: absolute; right: 15px; bottom: 13px; }
+    .game-copy > span { padding-right: 48px; }
+}

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Trial</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <label class="debug-toggle floating-debug"><input id="show-limit" type="checkbox"><span></span>DEBUG</label>
+    <div> 
+        <a id="back-button" class="social-button discord-button" href="../hub/">Back</a>
+    </div>
+    <main class="page-shell">
+        <header class="hero">
+            <div class="social-links">
+                <a class="social-button kofi-button" href="https://ko-fi.com/tchongass" target="_blank" rel="noopener noreferrer">Consider giving me money</a>
+                <button class="social-button discord-button" id="discord-button" type="button">Discord: limifaooooo</button>
+            </div>
+            <h1>TIME TRIAL</h1>
+        </header>
+
+        <section class="how-to">
+            <div class="config-heading">
+                <h2>!!!!!!!!! READ ME READ ME READ ME READ ME !!!!!!!!!!!!!</h2>
+            </div>
+            <p>Every goal you complete adds time to your clock. When your clock runs out, your run is over. The last one standing wins, so <b>First to complete = Last.</b></p>
+            <ul>
+                <li>Set the category to something like <b>High%</b> or <b>AA</b>, so the timer does not stop when someone kills the dragon.</li>
+                <li>Make sure there are enough <b>Completions</b> for everyone in the room, and enable <b>Disable reset</b>.</li>
+            </ul>
+        </section>
+
+        <section class="mc-panel config-panel">
+            <div class="config-heading">
+                <h2>CONFIGURE RUN</h2>
+            </div>
+            <div class="config-layout">
+                <div class="config-group">
+                    <h3>CLOCK</h3>
+                    <div class="time-fields">
+                        <label class="number-field">
+                            <span>Starting time</span>
+                            <div><input id="start-time" type="number" min="1" value="120"><strong>SECONDS</strong></div>
+                        </label>
+                        <label class="number-field">
+                            <span>Time reward per goal</span>
+                            <div><b>+</b><input id="bonus-time" type="number" min="1" value="20"><strong>SECONDS</strong></div>
+                        </label>
+                    </div>
+                </div>
+                <div class="config-group">
+                    <h3>TYPE OF OBJECTIVES</h3>
+                    <div class="mode-grid">
+                        <label class="mode-card active">
+                            <input id="mode-advancements" type="checkbox" checked>
+                            <span class="checkmark"></span>
+                            <span class="mode-icon">A</span>
+                            <span class="mode-copy"><strong>ADVANCEMENTS</strong><small>Get any to add time</small></span>
+                        </label>
+                        <label class="mode-card">
+                            <input id="mode-kills" type="checkbox">
+                            <span class="checkmark"></span>
+                            <span class="mode-icon sword">K</span>
+                            <span class="mode-copy"><strong>Mob Kills</strong><small>Every unique mob kill</small></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <details class="advanced-settings">
+                <summary>ADVANCED SETTINGS</summary>
+                <div class="advanced-grid">
+                    <label class="setting-toggle"><input id="separate-rewards" type="checkbox"><span></span>Use different rewards per objective</label>
+                    <label>Advancement reward <span><b>+</b><input id="advancement-reward" type="number" min="1" value="20" disabled> seconds</span></label>
+                    <label>Mob reward <span><b>+</b><input id="mob-reward" type="number" min="1" value="10" disabled> seconds</span></label>
+                    <label>Overview duration <span><input id="preview-time" type="number" min="0" value="15"> seconds</span></label>
+                    <label class="setting-toggle"><input id="preview-sounds" type="checkbox" checked><span></span>Final 3-second countdown sound</label>
+                    <label class="setting-toggle"><input id="creative-after-loss" type="checkbox"><span></span>Creative mode 5 seconds after losing</label>
+                </div>
+            </details>
+        </section>
+
+        <button id="generate" class="mc-button"><span>GENERATE COMMANDS</span></button>
+
+        <section class="mc-panel output-panel">
+            <div class="command-ready">
+                <div><span class="ready-light"></span><div><h2>YOUR COMMAND</h2><p id="summary">Configure the run, then generate your command.</p></div></div>
+            </div>
+            <ol class="copy-steps">
+                <li>Generate and copy your Time Trial command.</li>
+                <li>Paste it into your private room's <b>Run commands on world join</b> field.</li>
+            </ol>
+            <div class="command-buttons bottom-actions">
+                <button id="copy" class="copy-button" disabled>COPY FOR RANKED</button>
+                <button id="download-preset" class="download-button" disabled>OR DOWNLOAD THE RANKED PRESET</button>
+            </div>
+            <div class="output-tools">
+                <button id="toggle-output" class="text-button" disabled>SHOW RAW COMMAND</button>
+            </div>
+            <div class="limit-meter" id="limit-meter" hidden>
+                <div class="limit-track"><span id="limit-bar"></span></div>
+                <strong id="limit-label">0 / 32,500</strong>
+            </div>
+            <textarea id="output" readonly spellcheck="false" hidden></textarea>
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
