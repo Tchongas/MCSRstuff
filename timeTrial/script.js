@@ -333,7 +333,7 @@ function generate() {
             `execute as ${withSelectorArgs(players, "scores={s=1..3,c=..0},tag=!R,tag=!L")} at @s run playsound block.note_block.hat master @s ~ ~ ~ .7 1`,
             { command: `scoreboard players set ${players} c 20`, conditional: true }
         ] : []),
-        `execute at ${withSelectorArgs(players, "scores={s=1..},tag=!R,tag=!L,tag=!P")} run fill ~-1 ~30 ~-1 ~1 ~33 ~1 barrier hollow`,
+        `execute at ${withSelectorArgs(players, "scores={s=1..},tag=!R,tag=!L,tag=!P")} run fill ~-2 ~30 ~-2 ~2 ~33 ~2 barrier hollow`,
         `execute at ${withSelectorArgs(players, "scores={s=1..},tag=!R,tag=!L,tag=!P")} run tp ${players} ~ ~31 ~`,
         `tag ${withSelectorArgs(players, "scores={s=1..},tag=!R,tag=!L,tag=!P")} add P`,
         `execute at ${withSelectorArgs(players, "scores={s=..0},tag=P")} run tp ${players} ~ ~-31 ~`,
