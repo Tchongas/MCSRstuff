@@ -137,9 +137,9 @@ h3 { color: var(--gold); font-size: .8rem; }
 .limit-meter.warning strong { color: var(--gold); }
 .limit-meter.over .limit-track span { background: var(--danger); }
 .limit-meter.over strong { color: var(--danger); }
-#output { width: 100%; min-height: 150px; padding: 14px; resize: vertical; border: 3px solid #0a0d0a; border-radius: 0; outline: none; background: #0e130f; color: #9df479; font-family: Consolas, monospace; font-size: .78rem; line-height: 1.45; box-shadow: inset 4px 4px #060806; word-break: break-all; }
-#output[hidden] { display: none; }
-#output:focus { border-color: var(--lime-dark); }
+#output, #ranked-output { width: 100%; min-height: 150px; padding: 14px; resize: vertical; border: 3px solid #0a0d0a; border-radius: 0; outline: none; background: #0e130f; color: #9df479; font-family: Consolas, monospace; font-size: .78rem; line-height: 1.45; box-shadow: inset 4px 4px #060806; word-break: break-all; }
+#output[hidden], #ranked-output[hidden], #ranked-panel[hidden] { display: none; }
+#output:focus, #ranked-output:focus { border-color: var(--lime-dark); }
 .output-note { margin: 12px 0 0; color: var(--muted); font-size: .82rem; }
 
 @media (max-width: 700px) {

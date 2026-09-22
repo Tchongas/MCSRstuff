@@ -1,13 +1,24 @@
 const ADVANCEMENT_IDS = [
     "story/root", "story/mine_stone", "story/upgrade_tools", "story/smelt_iron", "story/obtain_armor", "story/lava_bucket", "story/iron_tools", "story/deflect_arrow", "story/form_obsidian", "story/mine_diamond", "story/enter_the_nether", "story/shiny_gear", "story/enchant_item", "story/cure_zombie_villager", "story/follow_ender_eye", "story/enter_the_end",
-    "nether/root", "nether/return_to_sender", "nether/find_bastion", "nether/obtain_ancient_debris", "nether/fast_travel", "nether/find_fortress", "nether/obtain_crying_obsidian", "nether/distract_piglin", "nether/ride_strider", "nether/uneasy_alliance", "nether/loot_bastion", "nether/use_lodestone", "nether/netherite_armor", "nether/get_wither_skull", "nether/obtain_blaze_rod", "nether/charge_respawn_anchor", "nether/explore_nether", "nether/summon_wither", "nether/brew_potion", "nether/create_beacon", "nether/all_potions", "nether/create_full_beacon", "nether/all_effects",
+    "nether/root", "nether/return_to_sender", "nether/find_bastion", "nether/obtain_ancient_debris", "nether/fast_travel", "nether/find_fortress", "nether/obtain_crying_obsidian", "nether/distract_piglin", "nether/ride_strider", "nether/uneasy_alliance", "nether/loot_bastion", "nether/use_lodestone", "nether/netherite_armor", "nether/get_wither_skull", "nether/obtain_blaze_rod", "nether/charge_respawn_anchor", "nether/explore_nether", "nether/summon_wither", "nether/brew_potion", "nether/create_beacon", "nether/create_full_beacon",
     "end/root", "end/kill_dragon", "end/dragon_egg", "end/enter_end_gateway", "end/respawn_dragon", "end/dragon_breath", "end/find_end_city", "end/elytra", "end/levitate",
-    "adventure/root", "adventure/voluntary_exile", "adventure/kill_a_mob", "adventure/trade", "adventure/honey_block_slide", "adventure/ol_betsy", "adventure/sleep_in_bed", "adventure/hero_of_the_village", "adventure/shoot_arrow", "adventure/kill_all_mobs", "adventure/totem_of_undying", "adventure/summon_iron_golem", "adventure/two_birds_one_arrow", "adventure/whos_the_pillager_now", "adventure/arbalistic", "adventure/adventuring_time", "adventure/sniper_duel", "adventure/bullseye",
+    "adventure/root", "adventure/voluntary_exile", "adventure/kill_a_mob", "adventure/trade", "adventure/honey_block_slide", "adventure/ol_betsy", "adventure/sleep_in_bed", "adventure/hero_of_the_village", "adventure/shoot_arrow", "adventure/totem_of_undying", "adventure/summon_iron_golem", "adventure/two_birds_one_arrow", "adventure/whos_the_pillager_now", "adventure/arbalistic", "adventure/sniper_duel", "adventure/bullseye",
     "husbandry/root", "husbandry/safely_harvest_honey", "husbandry/break_diamond_hoe", "husbandry/breed_an_animal", "husbandry/tame_an_animal", "husbandry/fishy_business", "husbandry/plant_seed", "husbandry/complete_catalogue", "husbandry/tactical_fishing", "husbandry/balanced_diet", "husbandry/obtain_netherite_hoe", "husbandry/bred_all_animals", "husbandry/silk_touch_nest"
 ];
 
+const RANKED_EXCLUDED_ADVANCEMENTS = new Set([
+    "nether/netherite_armor",
+    "nether/create_full_beacon",
+    "adventure/two_birds_one_arrow",
+    "husbandry/complete_catalogue",
+    "husbandry/balanced_diet",
+    "husbandry/bred_all_animals",
+    "husbandry/silk_touch_nest"
+]);
+const RANKED_ADVANCEMENT_IDS = ADVANCEMENT_IDS.filter(id => !RANKED_EXCLUDED_ADVANCEMENTS.has(id));
+
 const MOB_IDS = [
-    "bat", "bee", "blaze", "cat", "cave_spider", "chicken", "cod", "cow", "creeper", "dolphin", "donkey", "drowned", "elder_guardian", "ender_dragon", "enderman", "endermite", "evoker", "fox", "ghast", "guardian", "hoglin", "horse", "husk", "iron_golem", "llama", "magma_cube", "mooshroom", "mule", "ocelot", "panda", "parrot", "phantom", "pig", "piglin", "pillager", "polar_bear", "pufferfish", "rabbit", "ravager", "salmon", "sheep", "shulker", "silverfish", "skeleton", "skeleton_horse", "slime", "snow_golem", "spider", "squid", "stray", "strider", "trader_llama", "tropical_fish", "turtle", "vex", "villager", "vindicator", "wandering_trader", "witch", "wither", "wither_skeleton", "wolf", "zoglin", "zombie", "zombie_villager", "zombified_piglin"
+    "bat", "bee", "blaze", "cat", "cave_spider", "chicken", "cod", "cow", "creeper", "dolphin", "donkey", "drowned", "elder_guardian", "ender_dragon", "enderman", "endermite", "evoker", "fox", "ghast", "guardian", "hoglin", "horse", "husk", "iron_golem", "llama", "magma_cube", "mooshroom", "ocelot", "panda", "parrot", "phantom", "pig", "piglin", "pillager", "polar_bear", "pufferfish", "rabbit", "ravager", "salmon", "sheep", "shulker", "silverfish", "skeleton", "skeleton_horse", "slime", "snow_golem", "spider", "squid", "stray", "strider", "trader_llama", "tropical_fish", "turtle", "vex", "villager", "vindicator", "wandering_trader", "witch", "wither", "wither_skeleton", "wolf", "zoglin", "zombie", "zombie_villager", "zombified_piglin"
 ].map(id => `minecraft:${id}`);
 
 const PRESET_TEMPLATE = {
@@ -57,14 +68,14 @@ function advancementSelectorId(value) {
 }
 
 function blockCoords(x, y) {
-    return `${x ? `~${x}` : "~"} ${y} ~`;
+    return `${x ? `~${x}` : "~"} 0 ${y ? `~-${y}` : "~"}`;
 }
 
 function commandBlockType(repeating, conditional) {
-    if (repeating) return "repeating_command_block[facing=up]";
+    if (repeating) return "repeating_command_block";
     return conditional
-        ? "chain_command_block[facing=up,conditional=true]"
-        : "chain_command_block[facing=up]";
+        ? "chain_command_block[conditional=true]"
+        : "chain_command_block";
 }
 
 function createColumnWriter(commands) {
@@ -169,6 +180,7 @@ function updateCharacterDebug() {
     const output = document.getElementById("output").value;
     const summary = document.getElementById("summary");
     document.getElementById("limit-meter").hidden = !enabled;
+    document.getElementById("ranked-panel").hidden = !enabled;
     if (enabled) updateLimitMeter(output.length);
     if (summary.dataset.details) {
         summary.textContent = enabled
@@ -222,6 +234,14 @@ function invalidateGeneratedCommand() {
     document.getElementById("download-preset").disabled = true;
     document.getElementById("toggle-output").disabled = true;
     document.getElementById("toggle-output").textContent = "SHOW RAW COMMAND";
+    const rankedOutput = document.getElementById("ranked-output");
+    rankedOutput.value = "";
+    rankedOutput.hidden = true;
+    document.getElementById("copy-ranked").disabled = true;
+    document.getElementById("toggle-ranked-output").disabled = true;
+    document.getElementById("toggle-ranked-output").textContent = "SHOW RAW COMMAND";
+    document.getElementById("ranked-panel").classList.remove("ready");
+    document.getElementById("ranked-summary").textContent = "Settings changed. Generate new commands.";
     document.querySelector(".output-panel").classList.remove("ready");
     const generateButton = document.getElementById("generate");
     generateButton.classList.remove("generated");
@@ -256,7 +276,7 @@ function handleCommandSettingChange() {
     saveConfig();
 }
 
-function generate() {
+function generate(advancementIds = ADVANCEMENT_IDS, ranked = false) {
     const startSeconds = Math.max(1, Number.parseInt(document.getElementById("start-time").value, 10) || 120);
     const bonusSeconds = Math.max(1, Number.parseInt(document.getElementById("bonus-time").value, 10) || 20);
     const separateRewards = document.getElementById("separate-rewards").checked;
@@ -284,6 +304,21 @@ function generate() {
         { text: smallCaps("\nGoals: "), color: "aqua" },
         { text: `${smallCaps(rewardSources)}.\n`, color: "white" }
     ]);
+    const results = [
+        { text: `\n${smallCaps("Time Trial Results")}`, color: "gold", bold: true },
+        { text: `\n${smallCaps("Time survived: ")}`, color: "green" },
+        { score: { name: "@s", objective: "s" }, color: "white" },
+        { text: "s", color: "white" }
+    ];
+    if (advancementsEnabled) results.push(
+        { text: `\n${smallCaps("Advancements: ")}`, color: "green" },
+        { score: { name: "@s", objective: "a" }, color: "white" }
+    );
+    if (killsEnabled) results.push(
+        { text: `\n${smallCaps("Mobs: ")}`, color: "aqua" },
+        { score: { name: "@s", objective: "m" }, color: "white" }
+    );
+    results.push({ text: "\n" });
     const commands = [
         "/gamerule sendCommandFeedback false",
         "/gamerule logAdminCommands false",
@@ -291,23 +326,22 @@ function generate() {
         "/scoreboard objectives add r dummy",
         "/scoreboard objectives add s dummy",
         "/scoreboard objectives add c dummy",
+        ...(ranked ? ["/scoreboard objectives add h dummy"] : []),
         "/scoreboard objectives add w dummy",
         "/scoreboard objectives add b dummy",
-        "/scoreboard objectives add a dummy",
-        "/scoreboard objectives add m dummy",
-        `/scoreboard players set ${players} a 0`,
-        `/scoreboard players set ${players} m 0`,
+        ...(advancementsEnabled ? ["/scoreboard objectives add a dummy", `/scoreboard players set ${players} a 0`] : []),
+        ...(killsEnabled ? ["/scoreboard objectives add m dummy", `/scoreboard players set ${players} m 0`] : []),
         `/scoreboard players set ${players} c 0`,
+        ...(ranked ? [`/scoreboard players set ${players} h 0`, `/title ${players} times 0 25 5`] : []),
         `/scoreboard players set ${players} w -1`,
         `/execute as ${players} store result score @s r run speedrunigt get rta second`,
-        `/execute as ${players} run scoreboard players operation @s d = @s r`,
-        `/scoreboard players add ${players} d ${previewSeconds}`,
+        `/scoreboard players set ${players} d ${previewSeconds + 2}`,
         `/tellraw ${players} ${intro}`
     ];
 
     const events = [];
     if (advancementsEnabled) {
-        ADVANCEMENT_IDS.forEach(id => events.push({
+        advancementIds.forEach(id => events.push({
             kind: "advancement",
             reward: advancementReward,
             condition: `advancements={${advancementSelectorId(id)}=true}`
@@ -321,14 +355,38 @@ function generate() {
         });
     }
 
+    const previewCards = [];
+    if (ranked && advancementsEnabled) previewCards.push({ label: "Advancement", reward: advancementReward, color: "gold" });
+    if (ranked && killsEnabled) previewCards.push({ label: "Kill Unique Mobs", reward: mobReward, color: "aqua" });
+    const previewCardCommands = previewCards.flatMap((card, index) => {
+        const selector = withSelectorArgs(players, `scores={h=${index * 80 + 1}..${(index + 1) * 80}},tag=P`);
+        return [
+            `title ${selector} subtitle {"text":"${smallCaps(card.label)}","color":"${card.color}","bold":true,"extra":[{"text":"  |  ","color":"dark_gray"},{"text":"+${card.reward}s","color":"green"}]}`,
+            `title ${selector} title {"text":""}`
+        ];
+    });
+
     const columns = createColumnWriter(commands);
     columns.add([
+        `execute as @e[tag=C] run title @a actionbar {\"text\":\"Time inconsistency found - Please Forfeit Match\",\"color\":\"red\",\"bold\":true}`
+    ]);
+    columns.add([
         `execute as ${players} store result score @s r run speedrunigt get rta second`,
+        ...(ranked ? [
+            `scoreboard players add ${withSelectorArgs(players, "tag=P")} h 1`,
+            ...previewCardCommands,
+            `title ${withSelectorArgs(players, `scores={h=${previewCards.length * 80 + 1}},tag=P`)} clear`
+        ] : []),
         `scoreboard players remove ${withSelectorArgs(players, "scores={c=1..}")} c 1`,
         `scoreboard players remove ${withSelectorArgs(players, "scores={w=1..},tag=!R")} w 1`,
         `execute as ${players} run scoreboard players operation @s s = @s d`,
         `execute as ${players} run scoreboard players operation @s s -= @s r`,
-        `execute as ${withSelectorArgs(players, "scores={s=1..},tag=!R,tag=!L")} run title @s actionbar {\"text\":\"${smallCaps("Starting in: ")}\",\"color\":\"green\",\"bold\":true,\"extra\":[{\"score\":{\"name\":\"@s\",\"objective\":\"s\"},\"color\":\"white\",\"bold\":false},{\"text\":\"s\",\"color\":\"gray\",\"bold\":false}]}`,
+        { command: `tag ${withSelectorArgs(players, "scores={s=..-7},tag=!L,tag=!F")} add C` },
+        { command: `scoreboard players set ${withSelectorArgs(players, "tag=C")} s 1000`, conditional: true },
+        { command: `tag ${withSelectorArgs(players, "tag=C")} remove R`, conditional: true },
+        { command: `tag ${withSelectorArgs(players, "tag=C")} add L`, conditional: true },
+
+        `title ${withSelectorArgs(players, "scores={s=1..},tag=!R,tag=!L")} actionbar {\"text\":\"${smallCaps("Starting in: ")}\",\"color\":\"green\",\"bold\":true,\"extra\":[{\"score\":{\"name\":\"@p\",\"objective\":\"s\"},\"color\":\"white\",\"bold\":false},{\"text\":\"s\",\"color\":\"gray\",\"bold\":false}]}`,
         ...(previewSounds ? [
             `execute as ${withSelectorArgs(players, "scores={s=1..3,c=..0},tag=!R,tag=!L")} at @s run playsound block.note_block.hat master @s ~ ~ ~ .7 1`,
             { command: `scoreboard players set ${players} c 20`, conditional: true }
@@ -339,26 +397,26 @@ function generate() {
         `execute at ${withSelectorArgs(players, "scores={s=..0},tag=P")} run tp ${players} ~ ~-31 ~`,
         `execute at ${withSelectorArgs(players, "scores={s=..0},tag=P")} run fill ~-1 ~30 ~-1 ~1 ~33 ~1 air`,
         `tag ${withSelectorArgs(players, "scores={s=..0},tag=P")} remove P`,
-        `execute as ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L")} run scoreboard players operation @s b = @s r`,
-        `execute as ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L")} run scoreboard players operation @s d = @s r`,
-        `scoreboard players add ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L")} d ${startSeconds}`,
-        `scoreboard players set ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L")} c 0`,
-        `tag ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L")} add R`,
+        `execute as ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L,tag=!F")} run scoreboard players operation @s b = @s r`,
+        `scoreboard players add ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L,tag=!F")} d ${startSeconds}`,
+        `scoreboard players set ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L,tag=!F")} c 0`,
+        `tag ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L,tag=!F")} add R`,
         { command: `scoreboard players set ${players} w -1`, conditional: true },
         `execute as ${players} run scoreboard players operation @s s = @s d`,
         `execute as ${players} run scoreboard players operation @s s -= @s r`,
-        `execute as ${withSelectorArgs(players, "tag=R")} run title @s actionbar {\"text\":\"${smallCaps("Time remaining: ")}\",\"color\":\"green\",\"bold\":true,\"extra\":[{\"score\":{\"name\":\"@s\",\"objective\":\"s\"},\"color\":\"white\",\"bold\":false},{\"text\":\"s\",\"color\":\"gray\",\"bold\":false}]}`,
+        `title ${withSelectorArgs(players, "tag=R")} actionbar {\"text\":\"${smallCaps("Time remaining: ")}\",\"color\":\"green\",\"bold\":true,\"extra\":[{\"score\":{\"name\":\"@p\",\"objective\":\"s\"},\"color\":\"white\",\"bold\":false},{\"text\":\"s\",\"color\":\"gray\",\"bold\":false}]}`,
         `execute as ${withSelectorArgs(players, "scores={s=1..5,c=..0},tag=R")} at @s run playsound block.note_block.hat master @s ~ ~ ~ .7 1`,
         { command: `scoreboard players set ${players} c 20`, conditional: true },
         `execute as ${withSelectorArgs(players, "scores={s=..0},tag=R")} run speedrunigt stop`,
         { command: `execute as ${players} run scoreboard players operation @s s = @s r`, conditional: true },
         { command: `execute as ${players} run scoreboard players operation @s s -= @s b`, conditional: true },
         { command: `title ${players} title {\"text\":\"${smallCaps("Time's up!")}\",\"color\":\"red\",\"bold\":true}`, conditional: true },
-        { command: `execute as ${players} run tellraw @s [{\"text\":\"\\n${smallCaps("Time Trial Results")}\",\"color\":\"gold\",\"bold\":true},{\"text\":\"\\n${smallCaps("Time survived: ")}\",\"color\":\"green\"},{\"score\":{\"name\":\"@s\",\"objective\":\"s\"},\"color\":\"white\"},{\"text\":\"s\\n${smallCaps("Advancements: ")}\",\"color\":\"green\"},{\"score\":{\"name\":\"@s\",\"objective\":\"a\"},\"color\":\"white\"},{\"text\":\"\\n${smallCaps("Mobs: ")}\",\"color\":\"aqua\"},{\"score\":{\"name\":\"@s\",\"objective\":\"m\"},\"color\":\"white\"},{\"text\":\"\\n\"}]`, conditional: true },
+        { command: `execute as ${players} run tellraw @s ${JSON.stringify(results)}`, conditional: true },
         ...(creativeAfterLoss ? [
             { command: `scoreboard players set ${players} w 100`, conditional: true },
             { command: `tag ${players} add L`, conditional: true }
         ] : []),
+        { command: `tag ${players} add F`, conditional: true },
         { command: `tag ${players} remove R`, conditional: true },
         ...(creativeAfterLoss ? [
             `execute as ${withSelectorArgs(players, "scores={w=0},tag=L")} run gamemode creative @s`,
@@ -374,17 +432,23 @@ function generate() {
         const sound = mob ? "block.note_block.pling master @p ~ ~ ~ .35 1.2" : "entity.experience_orb.pickup master @p ~ ~ ~ .35 1.4";
         columns.add([
             `scoreboard players add ${withSelectorArgs(players, `${event.condition},tag=R`)} d ${event.reward}`,
-            { command: "setblock ~ ~-1 ~ air", conditional: true },
+            { command: "setblock ~ ~ ~1 air", conditional: true },
             { command: `scoreboard players add ${players} ${mob ? "m" : "a"} 1`, conditional: true },
             { command: `tellraw ${players} {\"text\":\"+${event.reward} ${smallCaps("seconds")}\",\"color\":\"${color}\"}`, conditional: true },
-            { command: `execute at ${players} run playsound ${sound}`, conditional: true },
-            { command: `execute as ${withSelectorArgs(players, "scores={s=1..5},tag=R")} run title @s actionbar {\"text\":\"${smallCaps("Clutch!")} +${event.reward}s\",\"color\":\"aqua\",\"bold\":true}`, conditional: true },
-            { command: `execute at ${players} run playsound entity.player.levelup master ${players} ~ ~ ~ .55 1.5`, conditional: true }
+            { command: `execute at ${players} run playsound ${sound}`, conditional: true }
         ]);
     });
 
     const gridStats = columns.finish();
     const output = commands.join(";");
+    if (ranked) {
+        document.getElementById("ranked-output").value = output;
+        document.getElementById("copy-ranked").disabled = false;
+        document.getElementById("toggle-ranked-output").disabled = false;
+        document.getElementById("ranked-panel").classList.add("ready");
+        document.getElementById("ranked-summary").textContent = `Ranked command ready · ${events.length} rewards · ${gridStats.count} command blocks`;
+        return;
+    }
     document.getElementById("output").value = output;
     document.getElementById("copy").disabled = false;
     document.getElementById("download-preset").disabled = false;
@@ -392,6 +456,7 @@ function generate() {
     document.querySelector(".output-panel").classList.add("ready");
     const summary = document.getElementById("summary");
     summary.dataset.details = `Command ready · ${events.length} rewards · ${gridStats.count} command blocks in ${gridStats.columns} column${gridStats.columns === 1 ? "" : "s"}`;
+    generate(RANKED_ADVANCEMENT_IDS, true);
     updateCharacterDebug();
     const generateButton = document.getElementById("generate");
     const generateLabel = generateButton.querySelector("span");
@@ -430,6 +495,12 @@ function toggleRawOutput() {
     document.getElementById("toggle-output").textContent = output.hidden ? "SHOW RAW COMMAND" : "HIDE RAW COMMAND";
 }
 
+function toggleRankedOutput() {
+    const output = document.getElementById("ranked-output");
+    output.hidden = !output.hidden;
+    document.getElementById("toggle-ranked-output").textContent = output.hidden ? "SHOW RAW COMMAND" : "HIDE RAW COMMAND";
+}
+
 async function copyOutput() {
     const output = document.getElementById("output");
     if (!output.value) return;
@@ -451,6 +522,19 @@ async function copyOutput() {
     }, 1500);
 }
 
+async function copyRankedOutput() {
+    const output = document.getElementById("ranked-output");
+    if (!output.value) return;
+    await navigator.clipboard.writeText(output.value);
+    const button = document.getElementById("copy-ranked");
+    button.textContent = "COPIED!";
+    button.classList.add("copied");
+    setTimeout(() => {
+        button.textContent = "COPY RANKED COMMAND";
+        button.classList.remove("copied");
+    }, 1500);
+}
+
 loadConfig();
 updateCharacterDebug();
 updateAdvancedState();
@@ -466,6 +550,8 @@ document.getElementById("show-limit").addEventListener("change", () => {
 });
 document.getElementById("discord-button").addEventListener("click", copyDiscord);
 document.getElementById("toggle-output").addEventListener("click", toggleRawOutput);
+document.getElementById("toggle-ranked-output").addEventListener("click", toggleRankedOutput);
 document.getElementById("download-preset").addEventListener("click", downloadPreset);
-document.getElementById("generate").addEventListener("click", generate);
+document.getElementById("generate").addEventListener("click", () => generate());
 document.getElementById("copy").addEventListener("click", copyOutput);
+document.getElementById("copy-ranked").addEventListener("click", copyRankedOutput);

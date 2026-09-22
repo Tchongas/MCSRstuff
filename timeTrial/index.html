@@ -103,6 +103,19 @@
             </div>
             <textarea id="output" readonly spellcheck="false" hidden></textarea>
         </section>
+
+        <section class="mc-panel output-panel" id="ranked-panel" hidden>
+            <div class="command-ready">
+                <div><span class="ready-light"></span><div><h2>RANKED MODE COMMAND</h2><p id="ranked-summary">Generate commands to build the ranked variant.</p></div></div>
+            </div>
+            <div class="command-buttons bottom-actions">
+                <button id="copy-ranked" class="copy-button" disabled>COPY RANKED COMMAND</button>
+            </div>
+            <div class="output-tools">
+                <button id="toggle-ranked-output" class="text-button" disabled>SHOW RAW COMMAND</button>
+            </div>
+            <textarea id="ranked-output" readonly spellcheck="false" hidden></textarea>
+        </section>
     </main>
     <script src="script.js"></script>
 </body>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Trial Ranked</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a class="back-button" href="../hub/">BACK TO HUB</a>
+    <a class="kofi-button" href="https://ko-fi.com/tchongass" target="_blank" rel="noopener noreferrer">CONSIDER GIVING ME MONEY</a>
+    <main class="page-shell">
+        <header class="hero">
+            <h1>TIME TRIAL</h1>
+        </header>
+
+        <section class="mc-panel leaderboard-panel">
+            <div class="panel-heading">
+                <div><span class="panel-kicker">AVERAGE TIME</span><h2>LEADERBOARD</h2></div>
+                <label class="search-field"><span>SEARCH</span><input id="player-search" type="search" placeholder="Player name" autocomplete="off"></label>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>RANK</th><th>PLAYER</th><th>AVG. TIME</th><th>BEST</th></tr></thead>
+                    <tbody id="leaderboard-body"></tbody>
+                </table>
+            </div>
+            <p id="empty-ranking" class="empty-state" hidden>No players match that search.</p>
+        </section>
+
+        <section class="mc-panel best-times-panel">
+            <div class="panel-heading"><div><h2>BEST TIMES</h2></div></div>
+            <div id="best-times" class="best-times-list"></div>
+        </section>
+
+        <section class="mc-panel history-panel">
+            <div class="panel-heading"><div><h2>RECENT RUNS</h2></div></div>
+            <div id="recent-runs" class="run-list"></div>
+        </section>
+
+        <section id="player-panel" class="mc-panel player-panel" hidden>
+            <button id="close-player" class="close-button" type="button">CLOSE</button>
+            <div id="player-content"></div>
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
