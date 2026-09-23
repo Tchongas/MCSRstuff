@@ -54,6 +54,10 @@ function avatarUrl(uuid, size = 40) {
     return `https://mc-heads.net/avatar/${encodeURIComponent(uuid)}/${size}`;
 }
 
+function avatarImg(uuid, size, extraClass = "") {
+    return `<img class="avatar ${extraClass}" src="${avatarUrl(uuid, size)}" width="${size}" height="${size}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${avatarUrl("MHF_Steve", size)}'">`;
+}
+
 function eligibleRuns(player) {
     return player.runs
         .filter(run => !run.forfeited && Number.isFinite(run.time))
@@ -127,7 +131,7 @@ function renderLeaderboard() {
         return `
         <tr class="${player.rankedRuns.length === 1 ? "new-player-row" : ""} ${player.rank <= 3 ? `podium-${player.rank}` : ""} fade-in" data-player="${escapeHtml(player.uuid)}" tabindex="0" role="button" aria-label="View ${escapeHtml(player.nickname)}'s profile">
             <td class="rank ${changed ? "flash" : ""}">#${player.rank}</td>
-            <td><div class="player-cell"><img class="avatar" src="${avatarUrl(player.uuid)}" width="40" height="40" alt="" loading="lazy"><span class="player-name">${escapeHtml(player.nickname)}</span></div></td>
+            <td><div class="player-cell">${avatarImg(player.uuid, 40)}<span class="player-name">${escapeHtml(player.nickname)}</span></div></td>
             <td class="time ${tier} ${player.rankedRuns.length === 1 ? "single-avg" : ""} ${changed ? "flash" : ""}">${formatTime(player.average)}${player.rankedRuns.length === 1 ? `<span class="avg-question" tabindex="0" role="note" data-tip="Only 1 completed run — average may not reflect true skill">?</span>` : ""}</td>
             <td class="best-time ${changed ? "flash" : ""}">${formatTime(player.best)}</td>
         </tr>`;
@@ -151,7 +155,7 @@ function renderBestTimes() {
     document.getElementById("best-times").innerHTML = bestPlayers.map((player, index) => `
         <button class="best-time-card fade-in" data-best-player="${escapeHtml(player.uuid)}" type="button" aria-label="View ${escapeHtml(player.nickname)}'s profile">
             <span class="best-rank">#${index + 1}</span>
-            <img class="avatar" src="${avatarUrl(player.uuid, 32)}" width="32" height="32" alt="" loading="lazy">
+            ${avatarImg(player.uuid, 32)}
             <strong>${escapeHtml(player.nickname)}</strong>
             <span class="best-result">${formatTime(player.best)}</span>
         </button>
@@ -174,7 +178,7 @@ function renderRecentRuns() {
             ${expanded ? `<div class="match-players">${participants.map((entry, index) => `
                 <button class="match-player ${index === 0 && Number.isFinite(entry.run.time) ? "winner" : ""}" type="button" data-player="${escapeHtml(entry.player.uuid)}">
                     <span class="match-place">#${index + 1}</span>
-                    <img class="avatar" src="${avatarUrl(entry.player.uuid, 24)}" width="24" height="24" alt="" loading="lazy">
+                    ${avatarImg(entry.player.uuid, 24)}
                     <span class="match-name">${escapeHtml(entry.player.nickname)}</span>
                     <span class="match-time">${Number.isFinite(entry.run.time) ? formatTime(entry.run.time) : "DNF"}</span>
                 </button>`).join("")}
@@ -193,20 +197,6 @@ function renderRecentRuns() {
     });
 }
 
-function sparklineSvg(times) {
-    if (times.length < 2) return "";
-    const width = 220;
-    const height = 48;
-    const min = Math.min(...times);
-    const max = Math.max(...times);
-    const range = max - min || 1;
-    const points = times.map((time, index) => {
-        const x = (index / (times.length - 1)) * (width - 8) + 4;
-        const y = height - 6 - ((time - min) / range) * (height - 12);
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-    }).join(" ");
-    return `<svg class="sparkline" viewBox="0 0 ${width} ${height}" role="img" aria-label="Recent completion times"><polyline points="${points}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
-}
 
 function headToHead(player) {
     const counts = new Map();
@@ -223,19 +213,16 @@ function openPlayer(uuid) {
     const player = standings().find(entry => entry.uuid === uuid) || players.find(entry => entry.uuid === uuid);
     if (!player) return;
     openPlayerUuid = uuid;
-    const ranked = player.rankedRuns || eligibleRuns(player);
-    const times = [...ranked].sort((a, b) => a.date - b.date).map(run => run.time);
     const rivals = headToHead(player);
     document.getElementById("player-content").innerHTML = `
-        <div class="player-title"><img class="avatar avatar-lg" src="${avatarUrl(player.uuid, 56)}" width="56" height="56" alt=""><h2>${escapeHtml(player.nickname)}</h2></div>
+        <div class="player-title">${avatarImg(player.uuid, 56, "avatar-lg")}<h2>${escapeHtml(player.nickname)}</h2></div>
         <div class="player-summary">
             <div><span>RANK</span><strong>${player.rank ? `#${player.rank}` : "—"}</strong></div>
             <div><span>20-RUN AVERAGE</span><strong>${formatTime(player.average)}</strong></div>
             <div><span>PERSONAL BEST</span><strong>${formatTime(player.best)}</strong></div>
         </div>
-        ${times.length > 1 ? `<div class="player-chart">${sparklineSvg(times)}</div>` : ""}
         ${rivals.length ? `<div class="player-rivals"><span>RACED WITH</span>${rivals.map(([other, count]) => `
-            <button class="rival" type="button" data-player="${escapeHtml(other.uuid)}"><img class="avatar" src="${avatarUrl(other.uuid, 24)}" width="24" height="24" alt="" loading="lazy">${escapeHtml(other.nickname)}<em>×${count}</em></button>`).join("")}</div>` : ""}
+            <button class="rival" type="button" data-player="${escapeHtml(other.uuid)}">${avatarImg(other.uuid, 24)}${escapeHtml(other.nickname)}<em>×${count}</em></button>`).join("")}</div>` : ""}
         <div class="player-runs">${[...player.runs].sort((a, b) => b.date - a.date).map(run => `
             <div class="player-run"><span>${escapeHtml(run.seedType)} · ${escapeHtml(run.bastionType)}</span><strong class="${Number.isFinite(run.time) ? "time" : "run-status"}">${run.forfeited ? "FORFEIT" : formatTime(run.time)}</strong><span>${formatDate(run.date)}</span></div>
         `).join("")}</div>
