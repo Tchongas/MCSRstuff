@@ -51,7 +51,7 @@ function escapeHtml(value) {
 }
 
 function avatarUrl(uuid, size = 40) {
-    return `https://mc-heads.net/avatar/${encodeURIComponent(uuid)}/${size}`;
+    return `https://skins.mcstats.com/face/${encodeURIComponent(uuid)}`;
 }
 
 function avatarImg(uuid, size, extraClass = "") {
