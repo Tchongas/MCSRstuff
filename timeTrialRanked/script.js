@@ -1,4 +1,4 @@
-const API_URL = "http://147.15.12.185:3001/api/time-trial/players";
+const API_URL = "https://timetrial.tchongas.red/api/time-trial/players";
 const MOCK_PLAYERS = [
     {
         uuid: "1de9fe3366b54e648e0f7e11676d89cb",
