@@ -128,7 +128,7 @@ function renderLeaderboard() {
         <tr class="${player.rankedRuns.length === 1 ? "new-player-row" : ""} ${player.rank <= 3 ? `podium-${player.rank}` : ""} fade-in" data-player="${escapeHtml(player.uuid)}" tabindex="0" role="button" aria-label="View ${escapeHtml(player.nickname)}'s profile">
             <td class="rank ${changed ? "flash" : ""}">#${player.rank}</td>
             <td><div class="player-cell"><img class="avatar" src="${avatarUrl(player.uuid)}" width="40" height="40" alt="" loading="lazy"><span class="player-name">${escapeHtml(player.nickname)}</span></div></td>
-            <td class="time ${tier} ${changed ? "flash" : ""}">${formatTime(player.average)}</td>
+            <td class="time ${tier} ${player.rankedRuns.length === 1 ? "single-avg" : ""} ${changed ? "flash" : ""}">${formatTime(player.average)}${player.rankedRuns.length === 1 ? `<span class="avg-question" tabindex="0" role="note" data-tip="Only 1 completed run — average may not reflect true skill">?</span>` : ""}</td>
             <td class="best-time ${changed ? "flash" : ""}">${formatTime(player.best)}</td>
         </tr>`;
     }).join("");
@@ -216,7 +216,7 @@ function headToHead(player) {
         const shared = other.runs.filter(run => ownMatchIds.has(run.id)).length;
         if (shared) counts.set(other, shared);
     }
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
 }
 
 function openPlayer(uuid) {
@@ -233,7 +233,7 @@ function openPlayer(uuid) {
             <div><span>20-RUN AVERAGE</span><strong>${formatTime(player.average)}</strong></div>
             <div><span>PERSONAL BEST</span><strong>${formatTime(player.best)}</strong></div>
         </div>
-        ${times.length > 1 ? `<div class="player-chart"><span>RECENT TIMES (OLD → NEW)</span>${sparklineSvg(times)}</div>` : ""}
+        ${times.length > 1 ? `<div class="player-chart">${sparklineSvg(times)}</div>` : ""}
         ${rivals.length ? `<div class="player-rivals"><span>RACED WITH</span>${rivals.map(([other, count]) => `
             <button class="rival" type="button" data-player="${escapeHtml(other.uuid)}"><img class="avatar" src="${avatarUrl(other.uuid, 24)}" width="24" height="24" alt="" loading="lazy">${escapeHtml(other.nickname)}<em>×${count}</em></button>`).join("")}</div>` : ""}
         <div class="player-runs">${[...player.runs].sort((a, b) => b.date - a.date).map(run => `
