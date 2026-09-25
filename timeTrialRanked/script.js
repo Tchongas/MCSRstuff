@@ -188,7 +188,7 @@ function renderRecentRuns() {
         const leadingTime = completed[0]?.run.time;
         const names = participants.map(entry => entry.player.nickname).join(", ");
         return `
-        <article class="run-card ${match.forfeited || !completed.length ? "invalid" : ""} ${expanded ? "expanded" : ""} fade-in">
+        <article class="run-card ${match.forfeited || !completed.length ? "invalid" : ""} ${expanded ? "expanded" : ""}">
             <button class="run-card-main" type="button" data-match="${match.id}" aria-expanded="${expanded}" aria-label="Show all players in match ${match.id}">
                 <div class="run-summary"><div class="run-player">${escapeHtml(names)}</div><div class="run-meta">${escapeHtml(match.seedType)} · ${escapeHtml(match.bastionType)} · ${participants.length} PLAYERS</div></div>
                 <strong class="${Number.isFinite(leadingTime) ? "time" : "run-status"}">${match.forfeited ? "FORFEIT" : formatTime(leadingTime)}</strong>
