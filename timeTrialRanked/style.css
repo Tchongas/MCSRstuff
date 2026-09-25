@@ -15,6 +15,7 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; min-height: 100vh; overflow-x: hidden; color: var(--cream); background: var(--void); font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif; }
+body.modal-open { overflow: hidden; }
 button, input { font: inherit; }
 button { color: inherit; }
 .back-button, .kofi-button { position: fixed; z-index: 5; top: 18px; padding: 10px 13px; border: 3px solid #171717; color: #fff; font-family: var(--mc-font); font-size: .68rem; text-decoration: none; transition: filter .13s, transform .13s; }
@@ -83,12 +84,15 @@ tbody tr:nth-child(3) .rank { color: #d89457; font-size: 1.2rem; }
 .run-card:hover { border-color: #617464; transform: translateX(4px); }
 .run-card.invalid { opacity: .58; }
 .run-card.invalid::before { background: var(--danger); }
-.run-player { color: #fff; font-size: 1.05rem; font-weight: 800; }
+.run-summary { min-width: 0; }
+.run-player { overflow: hidden; color: #fff; font-size: 1.05rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .run-card > .time { font-size: 1.9rem; }
 .run-meta, .run-date { color: #b8c4b4; font-size: .78rem; }
 .run-date { font-family: ui-monospace, Consolas, monospace; white-space: nowrap; }
 .run-status { color: #ff7468; font-family: var(--mc-font); font-size: .68rem; }
-.player-panel { position: fixed; z-index: 10; top: 50%; left: 50%; width: min(760px, calc(100% - 28px)); max-height: calc(100vh - 40px); margin: 0; overflow-y: auto; border-color: #426b3b; transform: translate(-50%, -50%); box-shadow: 0 0 0 100vmax rgba(2,6,3,.8), 0 0 45px rgba(110,227,63,.18), inset 3px 3px var(--panel-light), inset -3px -3px #171d18; }
+.player-backdrop { position: fixed; z-index: 9; inset: 0; background: rgba(2,6,3,.8); cursor: default; }
+.player-backdrop[hidden] { display: none; }
+.player-panel { position: fixed; z-index: 10; top: 50%; left: 50%; width: min(760px, calc(100% - 28px)); max-height: calc(100vh - 40px); margin: 0; overflow-y: auto; border-color: #426b3b; transform: translate(-50%, -50%); box-shadow: 0 0 45px rgba(110,227,63,.18), inset 3px 3px var(--panel-light), inset -3px -3px #171d18; }
 .player-panel[hidden] { display: none; }
 .close-button { position: absolute; top: 14px; right: 14px; padding: 9px 11px; border: 2px solid #411b18; background: linear-gradient(#a24e44, #713934); box-shadow: 0 3px #351512; font-family: var(--mc-font); font-size: .54rem; cursor: pointer; }
 .close-button:hover { filter: brightness(1.15); }

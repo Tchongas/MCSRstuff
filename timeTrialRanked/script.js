@@ -62,7 +62,7 @@ function eligibleRuns(player) {
     return player.runs
         .filter(run => !run.forfeited && Number.isFinite(run.time))
         .sort((a, b) => b.date - a.date)
-        .slice(0, 20);
+        .slice(0, 7);
 }
 
 function average(values) {
@@ -149,6 +149,22 @@ function allRuns() {
     return players.flatMap(player => player.runs.map(run => ({ ...run, player }))).sort((a, b) => b.date - a.date);
 }
 
+function recentMatches() {
+    const matches = new Map();
+    for (const run of allRuns()) {
+        if (!matches.has(run.id)) {
+            matches.set(run.id, {
+                id: run.id,
+                date: run.date,
+                seedType: run.seedType,
+                bastionType: run.bastionType,
+                forfeited: run.forfeited
+            });
+        }
+    }
+    return [...matches.values()].sort((a, b) => b.date - a.date);
+}
+
 function renderBestTimes() {
     if (!hasLoaded) return;
     const bestPlayers = standings().sort((a, b) => b.best - a.best).slice(0, 4);
@@ -165,15 +181,18 @@ function renderBestTimes() {
 
 function renderRecentRuns() {
     if (!hasLoaded) return;
-    document.getElementById("recent-runs").innerHTML = allRuns().slice(0, 4).map(run => {
-        const expanded = expandedMatches.has(run.id);
-        const participants = expanded ? matchParticipants(run.id) : [];
+    document.getElementById("recent-runs").innerHTML = recentMatches().map(match => {
+        const expanded = expandedMatches.has(match.id);
+        const participants = matchParticipants(match.id);
+        const completed = participants.filter(entry => Number.isFinite(entry.run.time));
+        const leadingTime = completed[0]?.run.time;
+        const names = participants.map(entry => entry.player.nickname).join(", ");
         return `
-        <article class="run-card ${run.forfeited || !Number.isFinite(run.time) ? "invalid" : ""} ${expanded ? "expanded" : ""} fade-in">
-            <button class="run-card-main" type="button" data-match="${run.id}" aria-expanded="${expanded}" aria-label="Show all players in match ${run.id}">
-                <div><div class="run-player">${escapeHtml(run.player.nickname)}</div><div class="run-meta">${escapeHtml(run.seedType)} · ${escapeHtml(run.bastionType)}</div></div>
-                <strong class="${Number.isFinite(run.time) ? "time" : "run-status"}">${run.forfeited ? "FORFEIT" : formatTime(run.time)}</strong>
-                <span class="run-date">${formatDate(run.date)}</span>
+        <article class="run-card ${match.forfeited || !completed.length ? "invalid" : ""} ${expanded ? "expanded" : ""} fade-in">
+            <button class="run-card-main" type="button" data-match="${match.id}" aria-expanded="${expanded}" aria-label="Show all players in match ${match.id}">
+                <div class="run-summary"><div class="run-player">${escapeHtml(names)}</div><div class="run-meta">${escapeHtml(match.seedType)} · ${escapeHtml(match.bastionType)} · ${participants.length} PLAYERS</div></div>
+                <strong class="${Number.isFinite(leadingTime) ? "time" : "run-status"}">${match.forfeited ? "FORFEIT" : formatTime(leadingTime)}</strong>
+                <span class="run-date">${formatDate(match.date)}</span>
             </button>
             ${expanded ? `<div class="match-players">${participants.map((entry, index) => `
                 <button class="match-player ${index === 0 && Number.isFinite(entry.run.time) ? "winner" : ""}" type="button" data-player="${escapeHtml(entry.player.uuid)}">
@@ -218,7 +237,7 @@ function openPlayer(uuid) {
         <div class="player-title">${avatarImg(player.uuid, 56, "avatar-lg")}<h2>${escapeHtml(player.nickname)}</h2></div>
         <div class="player-summary">
             <div><span>RANK</span><strong>${player.rank ? `#${player.rank}` : "—"}</strong></div>
-            <div><span>20-RUN AVERAGE</span><strong>${formatTime(player.average)}</strong></div>
+            <div><span>7-RUN AVERAGE</span><strong>${formatTime(player.average)}</strong></div>
             <div><span>PERSONAL BEST</span><strong>${formatTime(player.best)}</strong></div>
         </div>
         ${rivals.length ? `<div class="player-rivals"><span>RACED WITH</span>${rivals.map(([other, count]) => `
@@ -230,13 +249,17 @@ function openPlayer(uuid) {
     document.querySelectorAll(".rival").forEach(button => {
         button.addEventListener("click", () => openPlayer(button.dataset.player));
     });
+    document.getElementById("player-backdrop").hidden = false;
     document.getElementById("player-panel").hidden = false;
+    document.body.classList.add("modal-open");
     syncUrl();
 }
 
 function closePlayer() {
     openPlayerUuid = null;
+    document.getElementById("player-backdrop").hidden = true;
     document.getElementById("player-panel").hidden = true;
+    document.body.classList.remove("modal-open");
     syncUrl();
 }
 
@@ -278,9 +301,7 @@ searchInput.addEventListener("input", () => {
     syncUrl();
 });
 document.getElementById("close-player").addEventListener("click", closePlayer);
-document.getElementById("player-panel").addEventListener("click", event => {
-    if (event.target === event.currentTarget) closePlayer();
-});
+document.getElementById("player-backdrop").addEventListener("click", closePlayer);
 document.addEventListener("keydown", event => {
     if (event.key === "Escape") closePlayer();
 });

@@ -40,7 +40,8 @@
             <div id="recent-runs" class="run-list"></div>
         </section>
 
-        <section id="player-panel" class="mc-panel player-panel" hidden>
+        <div id="player-backdrop" class="player-backdrop" hidden></div>
+        <section id="player-panel" class="mc-panel player-panel" role="dialog" aria-modal="true" aria-label="Player details" hidden>
             <button id="close-player" class="close-button" type="button">CLOSE</button>
             <div id="player-content"></div>
         </section>
