@@ -51,6 +51,18 @@ h2 { font-size: 1.35rem; }
 h3 { color: var(--gold); font-size: .8rem; }
 .config-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
 .config-heading p, .output-heading p { margin: 0; color: var(--muted); line-height: 1.4; }
+.ranked-category { margin-bottom: 18px; padding: 16px; border: 2px solid #171d18; background: rgba(8,11,8,.35); }
+.ranked-category > p { margin: 7px 0 13px; color: var(--muted); font-size: .8rem; }
+.category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.category-card { position: relative; padding: 14px; border: 3px solid #0b0e0b; background: #1b221c; cursor: pointer; box-shadow: inset -3px -3px #111611, inset 3px 3px #3f4940; transition: filter .12s, transform .12s; }
+.category-card:hover { filter: brightness(1.1); transform: translateY(-2px); }
+.category-card input { position: absolute; opacity: 0; pointer-events: none; }
+.category-card span { display: flex; flex-direction: column; gap: 6px; }
+.category-card strong { color: #fff; font-family: var(--mc-font); font-size: .82rem; font-weight: 400; }
+.category-card small { color: var(--muted); font-size: .76rem; }
+.category-card.active { border-color: var(--lime); background: #233020; box-shadow: inset -3px -3px #172015, inset 3px 3px #425b3c, 0 0 16px rgba(110,227,63,.14); }
+.category-card.insane.active { border-color: #ef5548; background: #38201d; box-shadow: inset -3px -3px #211210, inset 3px 3px #6b332d, 0 0 16px rgba(239,85,72,.2); }
+.category-card.insane.active strong { color: #ff7568; }
 .config-layout { display: grid; grid-template-columns: .9fr 1.35fr; gap: 18px; }
 .config-group { min-width: 0; padding: 16px; background: rgba(8,11,8,.35); border: 2px solid #171d18; }
 .config-group h3 { margin-bottom: 13px; }
@@ -148,7 +160,7 @@ h3 { color: var(--gold); font-size: .8rem; }
     .page-shell { width: min(100% - 20px, 920px); padding-top: 8px; }
     .hero h1 { font-size: 3.4rem; }
     .mc-panel { padding: 17px; }
-    .how-to ul, .config-layout, .time-fields, .mode-grid, .advanced-grid, .copy-steps { grid-template-columns: 1fr; }
+    .how-to ul, .category-grid, .config-layout, .time-fields, .mode-grid, .advanced-grid, .copy-steps { grid-template-columns: 1fr; }
     .config-heading { display: block; }
     .config-heading p { margin-top: 8px; }
     .command-ready, .command-buttons { align-items: stretch; flex-direction: column; }

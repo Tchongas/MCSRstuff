@@ -16,6 +16,26 @@ const RANKED_EXCLUDED_ADVANCEMENTS = new Set([
     "husbandry/silk_touch_nest"
 ]);
 const RANKED_ADVANCEMENT_IDS = ADVANCEMENT_IDS.filter(id => !RANKED_EXCLUDED_ADVANCEMENTS.has(id));
+const RANKED_CATEGORIES = {
+    standard: {
+        label: "Standard",
+        startSeconds: 100,
+        advancementReward: 20,
+        mobReward: 20,
+        previewSeconds: 15,
+        previewSounds: true,
+        creativeAfterLoss: true
+    },
+    insane: {
+        label: "Insane",
+        startSeconds: 70,
+        advancementReward: 14,
+        mobReward: 14,
+        previewSeconds: 15,
+        previewSounds: true,
+        creativeAfterLoss: true
+    }
+};
 
 const MOB_IDS = [
     "bat", "bee", "blaze", "cat", "cave_spider", "chicken", "cod", "cow", "creeper", "dolphin", "donkey", "drowned", "elder_guardian", "ender_dragon", "enderman", "endermite", "evoker", "fox", "ghast", "guardian", "hoglin", "horse", "husk", "iron_golem", "llama", "magma_cube", "mooshroom", "ocelot", "panda", "parrot", "phantom", "pig", "piglin", "pillager", "polar_bear", "pufferfish", "rabbit", "ravager", "salmon", "sheep", "shulker", "silverfish", "skeleton", "skeleton_horse", "slime", "snow_golem", "spider", "squid", "stray", "strider", "trader_llama", "tropical_fish", "turtle", "vex", "villager", "vindicator", "wandering_trader", "witch", "wither", "wither_skeleton", "wolf", "zoglin", "zombie", "zombie_villager", "zombified_piglin"
@@ -201,7 +221,8 @@ function saveConfig() {
         mobReward: document.getElementById("mob-reward").value,
         previewTime: document.getElementById("preview-time").value,
         previewSounds: document.getElementById("preview-sounds").checked,
-        creativeAfterLoss: document.getElementById("creative-after-loss").checked
+        creativeAfterLoss: document.getElementById("creative-after-loss").checked,
+        rankedCategory: document.querySelector('input[name="ranked-category"]:checked').value
     }));
 }
 
@@ -220,6 +241,8 @@ function loadConfig() {
         document.getElementById("preview-time").value = config.previewTime ?? 15;
         document.getElementById("preview-sounds").checked = config.previewSounds !== false;
         document.getElementById("creative-after-loss").checked = Boolean(config.creativeAfterLoss);
+        const rankedCategory = document.querySelector(`input[name="ranked-category"][value="${config.rankedCategory || "standard"}"]`);
+        if (rankedCategory) rankedCategory.checked = true;
     } catch (error) {
         localStorage.removeItem("timeTrialConfig");
     }
@@ -260,6 +283,14 @@ function updateAdvancedState() {
     saveConfig();
 }
 
+function updateCategoryState() {
+    invalidateGeneratedCommand();
+    document.querySelectorAll(".category-card").forEach(card => {
+        card.classList.toggle("active", card.querySelector("input").checked);
+    });
+    saveConfig();
+}
+
 function updateModeState() {
     invalidateGeneratedCommand();
     const modeInputs = [...document.querySelectorAll(".mode-card input")];
@@ -277,14 +308,18 @@ function handleCommandSettingChange() {
 }
 
 function generate(advancementIds = ADVANCEMENT_IDS, ranked = false) {
-    const startSeconds = Math.max(1, Number.parseInt(document.getElementById("start-time").value, 10) || 120);
-    const bonusSeconds = Math.max(1, Number.parseInt(document.getElementById("bonus-time").value, 10) || 20);
-    const separateRewards = document.getElementById("separate-rewards").checked;
-    const advancementReward = separateRewards ? Math.max(1, Number.parseInt(document.getElementById("advancement-reward").value, 10) || 20) : bonusSeconds;
-    const mobReward = separateRewards ? Math.max(1, Number.parseInt(document.getElementById("mob-reward").value, 10) || 10) : bonusSeconds;
-    const previewSeconds = Math.max(0, Number.parseInt(document.getElementById("preview-time").value, 10) || 0);
-    const previewSounds = document.getElementById("preview-sounds").checked;
-    const creativeAfterLoss = document.getElementById("creative-after-loss").checked;
+    const rankedCategory = ranked ? document.querySelector('input[name="ranked-category"]:checked').value : "standard";
+    const rankedConfig = ranked ? RANKED_CATEGORIES[rankedCategory] : null;
+    const insane = rankedCategory === "insane";
+    const configuredBonus = Math.max(1, Number.parseInt(document.getElementById("bonus-time").value, 10) || 20);
+    const separateRewards = !ranked && document.getElementById("separate-rewards").checked;
+    const startSeconds = rankedConfig?.startSeconds ?? Math.max(1, Number.parseInt(document.getElementById("start-time").value, 10) || 120);
+    const bonusSeconds = rankedConfig?.advancementReward ?? configuredBonus;
+    const advancementReward = rankedConfig?.advancementReward ?? (separateRewards ? Math.max(1, Number.parseInt(document.getElementById("advancement-reward").value, 10) || 20) : bonusSeconds);
+    const mobReward = rankedConfig?.mobReward ?? (separateRewards ? Math.max(1, Number.parseInt(document.getElementById("mob-reward").value, 10) || 10) : bonusSeconds);
+    const previewSeconds = rankedConfig?.previewSeconds ?? Math.max(0, Number.parseInt(document.getElementById("preview-time").value, 10) || 0);
+    const previewSounds = rankedConfig?.previewSounds ?? document.getElementById("preview-sounds").checked;
+    const creativeAfterLoss = rankedConfig?.creativeAfterLoss ?? document.getElementById("creative-after-loss").checked;
     const players = "@p";
     const advancementsEnabled = document.getElementById("mode-advancements").checked;
     const killsEnabled = document.getElementById("mode-kills").checked;
@@ -295,7 +330,7 @@ function generate(advancementIds = ADVANCEMENT_IDS, ranked = false) {
         : `Each goal: +${bonusSeconds}s`;
     const intro = JSON.stringify([
         { text: "\n" },
-        { text: smallCaps("TIME TRIAL"), color: "gold", bold: true },
+        { text: smallCaps(insane ? "TIME TRIAL — INSANE" : "TIME TRIAL"), color: insane ? "red" : "gold", bold: true },
         { text: smallCaps("\nEvery goal you complete adds time to your clock."), color: "white" },
         { text: smallCaps("\nStart: "), color: "green" },
         { text: `${startSeconds}s`, color: "white" },
@@ -401,6 +436,11 @@ function generate(advancementIds = ADVANCEMENT_IDS, ranked = false) {
         `scoreboard players add ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L,tag=!F")} d ${startSeconds}`,
         `scoreboard players set ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L,tag=!F")} c 0`,
         `tag ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L,tag=!F")} add R`,
+        ...(insane ? [
+            { command: `title ${players} subtitle {"text":"${smallCaps("70 seconds · +14s per goal")}","color":"gold"}`, conditional: true },
+            { command: `title ${players} title {"text":"${smallCaps("INSANE MODE")}","color":"red","bold":true}`, conditional: true },
+            { command: `execute at ${players} run playsound entity.ender_dragon.growl master ${players} ~ ~ ~ 1 .8`, conditional: true }
+        ] : []),
         { command: `scoreboard players set ${players} w -1`, conditional: true },
         `execute as ${players} run scoreboard players operation @s s = @s d`,
         `execute as ${players} run scoreboard players operation @s s -= @s r`,
@@ -446,7 +486,7 @@ function generate(advancementIds = ADVANCEMENT_IDS, ranked = false) {
         document.getElementById("copy-ranked").disabled = false;
         document.getElementById("toggle-ranked-output").disabled = false;
         document.getElementById("ranked-panel").classList.add("ready");
-        document.getElementById("ranked-summary").textContent = `Ranked command ready · ${events.length} rewards · ${gridStats.count} command blocks`;
+        document.getElementById("ranked-summary").textContent = `${insane ? "Insane" : "Standard"} ranked command ready · ${events.length} rewards · ${gridStats.count} command blocks`;
         return;
     }
     document.getElementById("output").value = output;
@@ -537,9 +577,11 @@ async function copyRankedOutput() {
 
 loadConfig();
 updateCharacterDebug();
+updateCategoryState();
 updateAdvancedState();
 updateModeState();
 document.querySelectorAll(".mode-card input").forEach(input => input.addEventListener("change", updateModeState));
+document.querySelectorAll('input[name="ranked-category"]').forEach(input => input.addEventListener("change", updateCategoryState));
 document.querySelectorAll("#start-time, #bonus-time, #advancement-reward, #mob-reward, #preview-time").forEach(input => input.addEventListener("input", handleCommandSettingChange));
 document.getElementById("separate-rewards").addEventListener("change", updateAdvancedState);
 document.getElementById("preview-sounds").addEventListener("change", handleCommandSettingChange);
