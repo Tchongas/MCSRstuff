@@ -342,6 +342,7 @@ function generate(advancementIds = ADVANCEMENT_IDS, ranked = false) {
     const intro = JSON.stringify([
         { text: "\n" },
         { text: smallCaps(insane ? "TIME TRIAL — INSANE" : "TIME TRIAL"), color: insane ? "red" : "gold", bold: true },
+        ...(insane ? [{ text: smallCaps("\nYou have to be faster."), color: "red", italic: true }] : []),
         { text: smallCaps("\nEvery goal you complete adds time to your clock."), color: "white" },
         { text: smallCaps("\nStart: "), color: "green" },
         { text: `${startSeconds}s`, color: "white" },
