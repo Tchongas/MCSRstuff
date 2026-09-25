@@ -250,14 +250,14 @@ function loadConfig() {
 
 function invalidateGeneratedCommand() {
     const output = document.getElementById("output");
-    if (!output.value) return;
+    const rankedOutput = document.getElementById("ranked-output");
+    if (!output.value && !rankedOutput.value) return;
     output.value = "";
     output.hidden = true;
     document.getElementById("copy").disabled = true;
     document.getElementById("download-preset").disabled = true;
     document.getElementById("toggle-output").disabled = true;
     document.getElementById("toggle-output").textContent = "SHOW RAW COMMAND";
-    const rankedOutput = document.getElementById("ranked-output");
     rankedOutput.value = "";
     rankedOutput.hidden = true;
     document.getElementById("copy-ranked").disabled = true;
@@ -283,8 +283,19 @@ function updateAdvancedState() {
     saveConfig();
 }
 
+function invalidateRankedCommand() {
+    const rankedOutput = document.getElementById("ranked-output");
+    rankedOutput.value = "";
+    rankedOutput.hidden = true;
+    document.getElementById("copy-ranked").disabled = true;
+    document.getElementById("toggle-ranked-output").disabled = true;
+    document.getElementById("toggle-ranked-output").textContent = "SHOW RAW COMMAND";
+    document.getElementById("ranked-panel").classList.remove("ready");
+    document.getElementById("ranked-summary").textContent = "Choose a category, then generate its ranked command.";
+}
+
 function updateCategoryState() {
-    invalidateGeneratedCommand();
+    invalidateRankedCommand();
     document.querySelectorAll(".category-card").forEach(card => {
         card.classList.toggle("active", card.querySelector("input").checked);
     });
@@ -595,5 +606,6 @@ document.getElementById("toggle-output").addEventListener("click", toggleRawOutp
 document.getElementById("toggle-ranked-output").addEventListener("click", toggleRankedOutput);
 document.getElementById("download-preset").addEventListener("click", downloadPreset);
 document.getElementById("generate").addEventListener("click", () => generate());
+document.getElementById("generate-ranked").addEventListener("click", () => generate(RANKED_ADVANCEMENT_IDS, true));
 document.getElementById("copy").addEventListener("click", copyOutput);
 document.getElementById("copy-ranked").addEventListener("click", copyRankedOutput);
