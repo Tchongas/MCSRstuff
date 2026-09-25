@@ -265,6 +265,14 @@ function closePlayer() {
     syncUrl();
 }
 
+function updateCategoryAppearance() {
+    const select = document.getElementById("leaderboard-category");
+    const insane = select.value === "HIGH";
+    select.classList.toggle("insane", insane);
+    document.getElementById("leaderboard-kicker").textContent = `${insane ? "INSANE" : "STANDARD"} · 7-RUN AVERAGE`;
+    document.getElementById("leaderboard-rules").textContent = `${insane ? "+14S" : "+20S"} · ADVANCEMENTS + UNIQUE KILLS`;
+}
+
 function setStatus(message, offline) {
     const banner = document.getElementById("api-status");
     banner.hidden = !message;
@@ -302,7 +310,7 @@ async function loadData() {
 const searchInput = document.getElementById("player-search");
 const categorySelect = document.getElementById("leaderboard-category");
 categorySelect.addEventListener("change", () => {
-    categorySelect.classList.toggle("insane", categorySelect.value === "HIGH");
+    updateCategoryAppearance();
     expandedMatches.clear();
     closePlayer();
     players = [];
@@ -325,7 +333,7 @@ document.addEventListener("keydown", event => {
 
 const initialParams = new URLSearchParams(location.search);
 if (["HOW_DID_WE_GET_HERE", "HIGH"].includes(initialParams.get("category"))) categorySelect.value = initialParams.get("category");
-categorySelect.classList.toggle("insane", categorySelect.value === "HIGH");
+updateCategoryAppearance();
 if (initialParams.get("search")) searchInput.value = initialParams.get("search");
 const initialPlayer = initialParams.get("player");
 
