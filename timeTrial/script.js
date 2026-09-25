@@ -408,7 +408,7 @@ function generate(advancementIds = ADVANCEMENT_IDS, ranked = false) {
         const selector = withSelectorArgs(players, `scores={h=${index * 80 + 1}..${(index + 1) * 80}},tag=P`);
         return [
             `title ${selector} subtitle {"text":"${smallCaps(card.label)}","color":"${card.color}","bold":true,"extra":[{"text":"  |  ","color":"dark_gray"},{"text":"+${card.reward}s","color":"green"}]}`,
-            `title ${selector} title {"text":""}`
+            `title ${selector} title {"text":"${insane ? smallCaps("INSANE MODE") : ""}","color":"red","bold":true}`
         ];
     });
 
@@ -420,6 +420,7 @@ function generate(advancementIds = ADVANCEMENT_IDS, ranked = false) {
         `execute as ${players} store result score @s r run speedrunigt get rta second`,
         ...(ranked ? [
             `scoreboard players add ${withSelectorArgs(players, "tag=P")} h 1`,
+            ...(insane ? [`execute as ${withSelectorArgs(players, "scores={h=1},tag=P")} at @s run playsound entity.ender_dragon.growl master @s ~ ~ ~ 1 .8`] : []),
             ...previewCardCommands,
             `title ${withSelectorArgs(players, `scores={h=${previewCards.length * 80 + 1}},tag=P`)} clear`
         ] : []),
@@ -448,9 +449,9 @@ function generate(advancementIds = ADVANCEMENT_IDS, ranked = false) {
         `scoreboard players set ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L,tag=!F")} c 0`,
         `tag ${withSelectorArgs(players, "scores={s=..0},tag=!R,tag=!L,tag=!F")} add R`,
         ...(insane ? [
-            { command: `title ${players} subtitle {"text":"${smallCaps("70 seconds · +14s per goal")}","color":"gold"}`, conditional: true },
-            { command: `title ${players} title {"text":"${smallCaps("INSANE MODE")}","color":"red","bold":true}`, conditional: true },
-            { command: `execute at ${players} run playsound entity.ender_dragon.growl master ${players} ~ ~ ~ 1 .8`, conditional: true }
+            { command: `title ${players} subtitle {"text":"${smallCaps("INSANE MODE")}","color":"red","bold":true}`, conditional: true },
+            { command: `title ${players} title {"text":""}`, conditional: true },
+            { command: `execute at ${players} run playsound entity.wither.spawn master ${players} ~ ~ ~ 1 1`, conditional: true }
         ] : []),
         { command: `scoreboard players set ${players} w -1`, conditional: true },
         `execute as ${players} run scoreboard players operation @s s = @s d`,

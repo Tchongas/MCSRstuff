@@ -19,7 +19,10 @@
         <section class="mc-panel leaderboard-panel">
             <div class="panel-heading">
                 <div><span class="panel-kicker">AVERAGE TIME</span><h2><img class="panel-icon" src="https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/item/totem_of_undying.png" alt="" width="26" height="26">LEADERBOARD</h2></div>
-                <label class="search-field"><span>SEARCH</span><input id="player-search" type="search" placeholder="Player name" autocomplete="off"></label>
+                <div class="leaderboard-controls">
+                    <label class="category-select"><span>SELECT LEADERBOARD</span><select id="leaderboard-category"><option value="HOW_DID_WE_GET_HERE">STANDARD</option><option value="HIGH">INSANE</option></select></label>
+                    <label class="search-field"><span>SEARCH</span><input id="player-search" type="search" placeholder="Player name" autocomplete="off"></label>
+                </div>
             </div>
             <div class="table-wrap">
                 <table>

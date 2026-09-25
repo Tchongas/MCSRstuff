@@ -107,6 +107,8 @@ function matchParticipants(matchId) {
 function syncUrl() {
     const params = new URLSearchParams();
     const query = document.getElementById("player-search").value.trim();
+    const category = document.getElementById("leaderboard-category").value;
+    if (category !== "HOW_DID_WE_GET_HERE") params.set("category", category);
     if (query) params.set("search", query);
     if (openPlayerUuid) params.set("player", openPlayerUuid);
     const suffix = params.size ? `?${params}` : location.pathname;
@@ -272,9 +274,11 @@ function setStatus(message, offline) {
 
 async function loadData() {
     try {
-        const response = await fetch(API_URL);
+        const category = document.getElementById("leaderboard-category").value;
+        const response = await fetch(`${API_URL}?category=${encodeURIComponent(category)}`);
         if (!response.ok) throw new Error(`API returned ${response.status}`);
         const payload = await response.json();
+        if (category !== document.getElementById("leaderboard-category").value) return;
         players = payload.data;
         apiOffline = false;
         hasLoaded = true;
@@ -296,6 +300,19 @@ async function loadData() {
 }
 
 const searchInput = document.getElementById("player-search");
+const categorySelect = document.getElementById("leaderboard-category");
+categorySelect.addEventListener("change", () => {
+    categorySelect.classList.toggle("insane", categorySelect.value === "HIGH");
+    expandedMatches.clear();
+    closePlayer();
+    players = [];
+    hasLoaded = false;
+    document.getElementById("best-times").innerHTML = "";
+    document.getElementById("recent-runs").innerHTML = "";
+    renderLeaderboard();
+    syncUrl();
+    loadData();
+});
 searchInput.addEventListener("input", () => {
     renderLeaderboard();
     syncUrl();
@@ -307,6 +324,8 @@ document.addEventListener("keydown", event => {
 });
 
 const initialParams = new URLSearchParams(location.search);
+if (["HOW_DID_WE_GET_HERE", "HIGH"].includes(initialParams.get("category"))) categorySelect.value = initialParams.get("category");
+categorySelect.classList.toggle("insane", categorySelect.value === "HIGH");
 if (initialParams.get("search")) searchInput.value = initialParams.get("search");
 const initialPlayer = initialParams.get("player");
 
