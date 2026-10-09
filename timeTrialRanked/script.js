@@ -5,6 +5,37 @@ const MATCH_CONFIGS = {
     HOW_DID_WE_GET_HERE: { label: "STANDARD", start: 100, reward: 20, overview: 15 },
     HIGH: { label: "INSANE", start: 70, reward: 14, overview: 15 }
 };
+const ADVANCEMENT_NAMES = {
+    "story.root": "Minecraft",
+    "story.mine_stone": "Stone Age",
+    "story.upgrade_tools": "Getting an Upgrade",
+    "story.smelt_iron": "Acquire Hardware",
+    "story.obtain_armor": "Suit Up",
+    "story.lava_bucket": "Hot Stuff",
+    "story.iron_tools": "Isn't It Iron Pick",
+    "story.deflect_arrow": "Not Today, Thank You",
+    "story.form_obsidian": "Ice Bucket Challenge",
+    "story.mine_diamond": "Diamonds!",
+    "story.enter_the_nether": "We Need to Go Deeper",
+    "nether.root": "Nether",
+    "nether.find_bastion": "Those Were the Days",
+    "nether.obtain_crying_obsidian": "Who Is Cutting Onions?",
+    "nether.distract_piglin": "Oh Shiny",
+    "nether.loot_bastion": "War Pigs",
+    "nether.find_fortress": "A Terrible Fortress",
+    "nether.obtain_blaze_rod": "Into Fire",
+    "nether.charge_respawn_anchor": "Not Quite Nine Lives",
+    "adventure.root": "Adventure",
+    "adventure.kill_a_mob": "Monster Hunter",
+    "adventure.shoot_arrow": "Take Aim",
+    "adventure.sleep_in_bed": "Sweet Dreams",
+    "adventure.ol_betsy": "Ol' Betsy",
+    "husbandry.root": "Husbandry",
+    "husbandry.plant_seed": "A Seedy Place",
+    "husbandry.tame_an_animal": "Best Friends Forever",
+    "husbandry.fishy_business": "Fishy Business",
+    "husbandry.tactical_fishing": "Tactical Fishing"
+};
 const MOCK_PLAYERS = [
     {
         uuid: "1de9fe3366b54e648e0f7e11676d89cb",
@@ -180,7 +211,7 @@ function renderBestTimes() {
     const featured = bestPlayers.slice(0, 4);
     const remaining = bestPlayers.slice(4);
     document.getElementById("best-times").innerHTML = featured.map((player, index) => `
-        <button class="best-time-card fade-in" data-best-player="${escapeHtml(player.uuid)}" type="button" aria-label="View ${escapeHtml(player.nickname)}'s profile">
+        <button class="best-time-card fade-in" data-best-run="${player.rankedRuns.find(run => run.time === player.best)?.id}" type="button" aria-label="View ${escapeHtml(player.nickname)}'s fastest run">
             <span class="best-rank">#${index + 1}</span>
             ${avatarImg(player.uuid, 32)}
             <strong>${escapeHtml(player.nickname)}</strong>
@@ -191,7 +222,7 @@ function renderBestTimes() {
     const toggle = document.getElementById("toggle-best-times");
     moreList.hidden = !bestTimesExpanded;
     moreList.innerHTML = remaining.map((player, index) => `
-        <button class="more-best-time" data-best-player="${escapeHtml(player.uuid)}" type="button">
+        <button class="more-best-time" data-best-run="${player.rankedRuns.find(run => run.time === player.best)?.id}" type="button">
             <span class="best-rank">#${index + 5}</span>
             ${avatarImg(player.uuid, 28)}
             <strong>${escapeHtml(player.nickname)}</strong>
@@ -201,7 +232,7 @@ function renderBestTimes() {
     toggle.hidden = remaining.length === 0;
     toggle.textContent = bestTimesExpanded ? "SHOW FEWER TIMES" : `SHOW ${remaining.length} MORE TIMES`;
     toggle.setAttribute("aria-expanded", String(bestTimesExpanded));
-    document.querySelectorAll("[data-best-player]").forEach(card => card.addEventListener("click", () => openPlayer(card.dataset.bestPlayer)));
+    document.querySelectorAll("[data-best-run]").forEach(card => card.addEventListener("click", () => openRun(Number(card.dataset.bestRun))));
 }
 
 function renderRecentRuns() {
@@ -246,8 +277,9 @@ function renderRecentRuns() {
 }
 
 function objectiveName(type) {
-    const [section, ...parts] = type.split(".");
-    return `${section.toUpperCase()} · ${parts.join(" ").replaceAll("_", " ").toUpperCase()}`;
+    if (ADVANCEMENT_NAMES[type]) return ADVANCEMENT_NAMES[type];
+    const path = type.split(".").at(-1).replaceAll("_", " ");
+    return path.replace(/\b\w/g, character => character.toUpperCase());
 }
 
 function playerAdvancements(details, uuid) {
@@ -273,12 +305,11 @@ function renderRunPlayer(details, uuid) {
             <div class="mob-stat"><span>UNIQUE MOBS</span><strong>${inferredMobs ?? "—"}</strong><small>INFERRED</small></div>
             <div><span>TOTAL GOALS</span><strong>${totalObjectives ?? "—"}</strong></div>
         </div>
-        <div class="objective-note">Mob kills are estimated from the ${config.label.toLowerCase()} timer rules: ${config.start}s start, +${config.reward}s per goal and a ${config.overview}s overview.</div>
         <div class="timeline-heading"><h3>ADVANCEMENT TIMELINE</h3><span>${advancements.length} COMPLETED</span></div>
         <div class="advancement-timeline">${advancements.length ? advancements.map((event, index) => `
             <div class="advancement-event">
                 <span class="event-index">${String(index + 1).padStart(2, "0")}</span>
-                <div><strong>${escapeHtml(objectiveName(event.type))}</strong><small>${escapeHtml(event.type)}</small></div>
+                <div><strong>${escapeHtml(objectiveName(event.type))}</strong></div>
                 <time>${formatTime(event.time)}</time>
             </div>`).join("") : `<p class="empty-state">No advancement events were reported for ${escapeHtml(player?.nickname || "this player")}.</p>`}</div>`;
 }
@@ -289,12 +320,10 @@ function renderRunDetails(details, selectedUuid) {
     const participants = [...(details.players || [])].sort((a, b) => (completionTimes.get(a.uuid) ?? Infinity) - (completionTimes.get(b.uuid) ?? Infinity));
     const activeUuid = participants.some(player => player.uuid === selectedUuid) ? selectedUuid : details.result?.uuid || participants[0]?.uuid;
     document.getElementById("run-content").innerHTML = `
-        <div class="run-info-title"><span>RUN INFO</span><h2>MATCH #${details.id}</h2></div>
-        <div class="run-info-summary">
-            <div><span>MODE</span><strong>${config.label}</strong></div>
-            <div><span>DATE</span><strong>${formatDate(details.date)}</strong></div>
-            <div><span>SEED</span><strong>${escapeHtml(details.seedType || details.seed?.overworld)}</strong></div>
-            <div><span>BASTION</span><strong>${escapeHtml(details.bastionType || details.seed?.nether)}</strong></div>
+        <div class="run-info-title">
+            <span>RUN INFO</span>
+            <h2>${config.label} RUN</h2>
+            <div class="run-info-meta">${formatDate(details.date)} · ${escapeHtml(details.seedType || details.seed?.overworld)} · ${escapeHtml(details.bastionType || details.seed?.nether)}</div>
         </div>
         <h3>SELECT PLAYER</h3>
         <div class="run-player-tabs">${participants.map((player, index) => `
@@ -318,7 +347,7 @@ async function openRun(matchId) {
     document.getElementById("run-backdrop").hidden = false;
     document.getElementById("run-panel").hidden = false;
     document.body.classList.add("modal-open");
-    document.getElementById("run-content").innerHTML = `<div class="run-info-title"><span>RUN INFO</span><h2>MATCH #${matchId}</h2></div><div class="run-loading">LOADING MATCH DETAILS...</div>`;
+    document.getElementById("run-content").innerHTML = `<div class="run-info-title"><span>RUN INFO</span><h2>LOADING RUN</h2></div><div class="run-loading">LOADING MATCH DETAILS...</div>`;
     try {
         const category = document.getElementById("leaderboard-category").value;
         const cacheKey = `${category}:${matchId}`;
@@ -330,7 +359,7 @@ async function openRun(matchId) {
         }
         renderRunDetails(matchDetailsCache.get(cacheKey));
     } catch (error) {
-        document.getElementById("run-content").innerHTML = `<div class="run-info-title"><span>RUN INFO</span><h2>MATCH #${matchId}</h2></div><div class="run-detail-error">MATCH DETAILS ARE NOT AVAILABLE YET</div>`;
+        document.getElementById("run-content").innerHTML = `<div class="run-info-title"><span>RUN INFO</span><h2>RUN UNAVAILABLE</h2></div><div class="run-detail-error">MATCH DETAILS ARE NOT AVAILABLE YET</div>`;
     }
 }
 
