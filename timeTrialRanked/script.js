@@ -1,5 +1,10 @@
 const API_URL = "https://timetrial.tchongas.red/api/time-trial/players";
 const REFRESH_MS = 30000;
+const MATCH_API_URL = API_URL.replace(/\/players$/, "/matches");
+const MATCH_CONFIGS = {
+    HOW_DID_WE_GET_HERE: { label: "STANDARD", start: 100, reward: 20, overview: 15 },
+    HIGH: { label: "INSANE", start: 70, reward: 14, overview: 15 }
+};
 const MOCK_PLAYERS = [
     {
         uuid: "1de9fe3366b54e648e0f7e11676d89cb",
@@ -43,6 +48,8 @@ let players = [];
 let apiOffline = false;
 let hasLoaded = false;
 let openPlayerUuid = null;
+let bestTimesExpanded = false;
+const matchDetailsCache = new Map();
 const expandedMatches = new Set();
 const previousStats = new Map();
 
@@ -169,8 +176,10 @@ function recentMatches() {
 
 function renderBestTimes() {
     if (!hasLoaded) return;
-    const bestPlayers = standings().sort((a, b) => b.best - a.best).slice(0, 4);
-    document.getElementById("best-times").innerHTML = bestPlayers.map((player, index) => `
+    const bestPlayers = standings().sort((a, b) => b.best - a.best);
+    const featured = bestPlayers.slice(0, 4);
+    const remaining = bestPlayers.slice(4);
+    document.getElementById("best-times").innerHTML = featured.map((player, index) => `
         <button class="best-time-card fade-in" data-best-player="${escapeHtml(player.uuid)}" type="button" aria-label="View ${escapeHtml(player.nickname)}'s profile">
             <span class="best-rank">#${index + 1}</span>
             ${avatarImg(player.uuid, 32)}
@@ -178,6 +187,20 @@ function renderBestTimes() {
             <span class="best-result">${formatTime(player.best)}</span>
         </button>
     `).join("");
+    const moreList = document.getElementById("more-best-times");
+    const toggle = document.getElementById("toggle-best-times");
+    moreList.hidden = !bestTimesExpanded;
+    moreList.innerHTML = remaining.map((player, index) => `
+        <button class="more-best-time" data-best-player="${escapeHtml(player.uuid)}" type="button">
+            <span class="best-rank">#${index + 5}</span>
+            ${avatarImg(player.uuid, 28)}
+            <strong>${escapeHtml(player.nickname)}</strong>
+            <span>${formatTime(player.best)}</span>
+        </button>
+    `).join("");
+    toggle.hidden = remaining.length === 0;
+    toggle.textContent = bestTimesExpanded ? "SHOW FEWER TIMES" : `SHOW ${remaining.length} MORE TIMES`;
+    toggle.setAttribute("aria-expanded", String(bestTimesExpanded));
     document.querySelectorAll("[data-best-player]").forEach(card => card.addEventListener("click", () => openPlayer(card.dataset.bestPlayer)));
 }
 
@@ -203,6 +226,7 @@ function renderRecentRuns() {
                     <span class="match-name">${escapeHtml(entry.player.nickname)}</span>
                     <span class="match-time">${Number.isFinite(entry.run.time) ? formatTime(entry.run.time) : "DNF"}</span>
                 </button>`).join("")}
+                <button class="run-info-button" type="button" data-run="${match.id}">VIEW RUN INFO</button>
             </div>` : ""}
         </article>`;
     }).join("");
@@ -216,8 +240,105 @@ function renderRecentRuns() {
     document.querySelectorAll(".match-player").forEach(button => {
         button.addEventListener("click", () => openPlayer(button.dataset.player));
     });
+    document.querySelectorAll(".run-info-button").forEach(button => {
+        button.addEventListener("click", () => openRun(Number(button.dataset.run)));
+    });
 }
 
+function objectiveName(type) {
+    const [section, ...parts] = type.split(".");
+    return `${section.toUpperCase()} · ${parts.join(" ").replaceAll("_", " ").toUpperCase()}`;
+}
+
+function playerAdvancements(details, uuid) {
+    const seen = new Set();
+    return (details.timelines || [])
+        .filter(event => event.uuid === uuid && !event.type.startsWith("projectelo.timeline.") && !seen.has(event.type) && seen.add(event.type))
+        .sort((a, b) => a.time - b.time);
+}
+
+function renderRunPlayer(details, uuid) {
+    const config = MATCH_CONFIGS[details.category] || MATCH_CONFIGS.HOW_DID_WE_GET_HERE;
+    const player = (details.players || []).find(entry => entry.uuid === uuid);
+    const completion = (details.completions || []).find(entry => entry.uuid === uuid);
+    const advancements = playerAdvancements(details, uuid);
+    const elapsedSeconds = Number.isFinite(completion?.time) ? completion.time / 1000 : null;
+    const totalObjectives = elapsedSeconds === null ? null : Math.max(advancements.length, Math.round((elapsedSeconds - config.overview - config.start) / config.reward));
+    const inferredMobs = totalObjectives === null ? null : Math.max(0, totalObjectives - advancements.length);
+    const selected = document.getElementById("run-player-detail");
+    selected.innerHTML = `
+        <div class="objective-stats">
+            <div><span>FINAL TIME</span><strong>${formatTime(completion?.time)}</strong></div>
+            <div><span>ADVANCEMENTS</span><strong>${advancements.length}</strong></div>
+            <div class="mob-stat"><span>UNIQUE MOBS</span><strong>${inferredMobs ?? "—"}</strong><small>INFERRED</small></div>
+            <div><span>TOTAL GOALS</span><strong>${totalObjectives ?? "—"}</strong></div>
+        </div>
+        <div class="objective-note">Mob kills are estimated from the ${config.label.toLowerCase()} timer rules: ${config.start}s start, +${config.reward}s per goal and a ${config.overview}s overview.</div>
+        <div class="timeline-heading"><h3>ADVANCEMENT TIMELINE</h3><span>${advancements.length} COMPLETED</span></div>
+        <div class="advancement-timeline">${advancements.length ? advancements.map((event, index) => `
+            <div class="advancement-event">
+                <span class="event-index">${String(index + 1).padStart(2, "0")}</span>
+                <div><strong>${escapeHtml(objectiveName(event.type))}</strong><small>${escapeHtml(event.type)}</small></div>
+                <time>${formatTime(event.time)}</time>
+            </div>`).join("") : `<p class="empty-state">No advancement events were reported for ${escapeHtml(player?.nickname || "this player")}.</p>`}</div>`;
+}
+
+function renderRunDetails(details, selectedUuid) {
+    const config = MATCH_CONFIGS[details.category] || MATCH_CONFIGS.HOW_DID_WE_GET_HERE;
+    const completionTimes = new Map((details.completions || []).map(entry => [entry.uuid, entry.time]));
+    const participants = [...(details.players || [])].sort((a, b) => (completionTimes.get(a.uuid) ?? Infinity) - (completionTimes.get(b.uuid) ?? Infinity));
+    const activeUuid = participants.some(player => player.uuid === selectedUuid) ? selectedUuid : details.result?.uuid || participants[0]?.uuid;
+    document.getElementById("run-content").innerHTML = `
+        <div class="run-info-title"><span>RUN INFO</span><h2>MATCH #${details.id}</h2></div>
+        <div class="run-info-summary">
+            <div><span>MODE</span><strong>${config.label}</strong></div>
+            <div><span>DATE</span><strong>${formatDate(details.date)}</strong></div>
+            <div><span>SEED</span><strong>${escapeHtml(details.seedType || details.seed?.overworld)}</strong></div>
+            <div><span>BASTION</span><strong>${escapeHtml(details.bastionType || details.seed?.nether)}</strong></div>
+        </div>
+        <h3>SELECT PLAYER</h3>
+        <div class="run-player-tabs">${participants.map((player, index) => `
+            <button class="run-player-tab ${player.uuid === activeUuid ? "active" : ""}" type="button" data-run-select="${escapeHtml(player.uuid)}">
+                <span class="match-place">#${index + 1}</span>${avatarImg(player.uuid, 32)}
+                <span><strong>${escapeHtml(player.nickname)}</strong><small>${formatTime(completionTimes.get(player.uuid))}</small></span>
+            </button>`).join("")}</div>
+        <div id="run-player-detail"></div>`;
+    document.querySelectorAll("[data-run-select]").forEach(button => {
+        button.addEventListener("click", () => {
+            document.querySelectorAll("[data-run-select]").forEach(tab => tab.classList.toggle("active", tab === button));
+            renderRunPlayer(details, button.dataset.runSelect);
+        });
+    });
+    if (activeUuid) renderRunPlayer(details, activeUuid);
+}
+
+async function openRun(matchId) {
+    const match = recentMatches().find(entry => entry.id === matchId);
+    if (!match) return;
+    document.getElementById("run-backdrop").hidden = false;
+    document.getElementById("run-panel").hidden = false;
+    document.body.classList.add("modal-open");
+    document.getElementById("run-content").innerHTML = `<div class="run-info-title"><span>RUN INFO</span><h2>MATCH #${matchId}</h2></div><div class="run-loading">LOADING MATCH DETAILS...</div>`;
+    try {
+        const category = document.getElementById("leaderboard-category").value;
+        const cacheKey = `${category}:${matchId}`;
+        if (!matchDetailsCache.has(cacheKey)) {
+            const response = await fetch(`${MATCH_API_URL}/${matchId}?category=${encodeURIComponent(category)}`);
+            if (!response.ok) throw new Error(`API returned ${response.status}`);
+            const payload = await response.json();
+            matchDetailsCache.set(cacheKey, payload.data);
+        }
+        renderRunDetails(matchDetailsCache.get(cacheKey));
+    } catch (error) {
+        document.getElementById("run-content").innerHTML = `<div class="run-info-title"><span>RUN INFO</span><h2>MATCH #${matchId}</h2></div><div class="run-detail-error">MATCH DETAILS ARE NOT AVAILABLE YET</div>`;
+    }
+}
+
+function closeRun() {
+    document.getElementById("run-backdrop").hidden = true;
+    document.getElementById("run-panel").hidden = true;
+    if (document.getElementById("player-panel").hidden) document.body.classList.remove("modal-open");
+}
 
 function headToHead(player) {
     const counts = new Map();
@@ -245,11 +366,17 @@ function openPlayer(uuid) {
         ${rivals.length ? `<div class="player-rivals"><span>RACED WITH</span>${rivals.map(([other, count]) => `
             <button class="rival" type="button" data-player="${escapeHtml(other.uuid)}">${avatarImg(other.uuid, 24)}${escapeHtml(other.nickname)}<em>×${count}</em></button>`).join("")}</div>` : ""}
         <div class="player-runs">${[...player.runs].sort((a, b) => b.date - a.date).map(run => `
-            <div class="player-run"><span>${escapeHtml(run.seedType)} · ${escapeHtml(run.bastionType)}</span><strong class="${Number.isFinite(run.time) ? "time" : "run-status"}">${run.forfeited ? "FORFEIT" : formatTime(run.time)}</strong><span>${formatDate(run.date)}</span></div>
+            <button class="player-run" type="button" data-player-run="${run.id}"><span>${escapeHtml(run.seedType)} · ${escapeHtml(run.bastionType)}</span><strong class="${Number.isFinite(run.time) ? "time" : "run-status"}">${run.forfeited ? "FORFEIT" : formatTime(run.time)}</strong><span>${formatDate(run.date)}</span></button>
         `).join("")}</div>
     `;
     document.querySelectorAll(".rival").forEach(button => {
         button.addEventListener("click", () => openPlayer(button.dataset.player));
+    });
+    document.querySelectorAll("[data-player-run]").forEach(button => {
+        button.addEventListener("click", () => {
+            closePlayer();
+            openRun(Number(button.dataset.playerRun));
+        });
     });
     document.getElementById("player-backdrop").hidden = false;
     document.getElementById("player-panel").hidden = false;
@@ -325,10 +452,19 @@ searchInput.addEventListener("input", () => {
     renderLeaderboard();
     syncUrl();
 });
+document.getElementById("toggle-best-times").addEventListener("click", () => {
+    bestTimesExpanded = !bestTimesExpanded;
+    renderBestTimes();
+});
 document.getElementById("close-player").addEventListener("click", closePlayer);
 document.getElementById("player-backdrop").addEventListener("click", closePlayer);
+document.getElementById("close-run").addEventListener("click", closeRun);
+document.getElementById("run-backdrop").addEventListener("click", closeRun);
 document.addEventListener("keydown", event => {
-    if (event.key === "Escape") closePlayer();
+    if (event.key === "Escape") {
+        closePlayer();
+        closeRun();
+    }
 });
 
 const initialParams = new URLSearchParams(location.search);

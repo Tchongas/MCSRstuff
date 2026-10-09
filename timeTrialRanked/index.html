@@ -46,6 +46,8 @@
         <section class="mc-panel best-times-panel">
             <div class="panel-heading"><div><h2><img class="panel-icon" src="https://assets.mcasset.cloud/26.3/assets/minecraft/textures/item/clock_11.png" alt="" width="26" height="26">BEST TIMES</h2></div></div>
             <div id="best-times" class="best-times-list"></div>
+            <button id="toggle-best-times" class="expand-times-button" type="button" aria-expanded="false">SHOW MORE TIMES</button>
+            <div id="more-best-times" class="more-best-times" hidden></div>
         </section>
 
         <section class="mc-panel history-panel">
@@ -57,6 +59,12 @@
         <section id="player-panel" class="mc-panel player-panel" role="dialog" aria-modal="true" aria-label="Player details" hidden>
             <button id="close-player" class="close-button" type="button">CLOSE</button>
             <div id="player-content"></div>
+        </section>
+
+        <div id="run-backdrop" class="player-backdrop" hidden></div>
+        <section id="run-panel" class="mc-panel player-panel run-info-panel" role="dialog" aria-modal="true" aria-label="Run information" hidden>
+            <button id="close-run" class="close-button" type="button">CLOSE</button>
+            <div id="run-content"></div>
         </section>
     </main>
     <script src="script.js"></script>
