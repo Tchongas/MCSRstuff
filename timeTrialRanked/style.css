@@ -99,6 +99,7 @@ tbody tr:nth-child(3) .rank { color: #d89457; font-size: 1.2rem; }
 .expand-times-button { display: block; width: 100%; margin-top: 12px; padding: 13px; border: 2px solid #806122; background: linear-gradient(#51431e, #302914); color: #ffe274; font-family: var(--mc-font); font-size: .65rem; cursor: pointer; }
 .expand-times-button:hover { filter: brightness(1.12); }
 .more-best-times { display: grid; max-height: 360px; margin-top: 10px; overflow-y: auto; border: 2px solid #151c16; }
+.more-best-times[hidden] { display: none; }
 .more-best-time { display: grid; grid-template-columns: 55px 32px 1fr auto; align-items: center; gap: 12px; padding: 11px 14px; border: 0; border-bottom: 1px solid #3d483e; background: #1b231c; color: #fff; text-align: left; cursor: pointer; }
 .more-best-time:last-child { border-bottom: 0; }
 .more-best-time:hover { background: #273229; }
