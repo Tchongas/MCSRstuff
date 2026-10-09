@@ -1,6 +1,6 @@
 @font-face {
-    font-family: "Time Trial Pixel";
-    src: url("assets/fonts/press-start-2p.ttf") format("truetype");
+    font-family: "Time Trial Minecraft";
+    src: url("assets/fonts/Minercraftory.ttf") format("truetype");
     font-style: normal;
     font-weight: 400;
     font-display: swap;
@@ -18,7 +18,7 @@
     --gold: #f5c542;
     --aqua: #55d8df;
     --danger: #e55b55;
-    --mc-font: "Time Trial Pixel", monospace;
+    --mc-font: "Time Trial Minecraft", monospace;
 }
 
 * { box-sizing: border-box; }
